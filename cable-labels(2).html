@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cable Labels</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --col-ac:  #e02020;
+  --col-eth: #1a6fd4;
+  --col-fbr: #b89000;
+  --col-dc:  #e07a00;
+  --col-sw:  #7b3fc4;
+}
+
+body {
+  background: #bbb;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* ═══════════ SCREEN LAYOUT ═══════════ */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Control Panel ── */
+#ctrl-panel {
+  background: #111;
+  padding: 12px 16px 10px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+#ctrl-panel h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.15em;
+  color: #fff; margin-bottom: 8px;
+}
+.ctrl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 7px; margin-bottom: 8px;
+}
+.ctrl-group {
+  background: #1e1e1e; border-radius: 5px; padding: 7px 9px;
+}
+.ctrl-group-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 7.5px; letter-spacing: 0.22em; color: #555;
+  text-transform: uppercase;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 4px; margin-bottom: 5px;
+}
+.ctrl-row { margin-bottom: 4px; }
+.ctrl-row:last-child { margin-bottom: 0; }
+.ctrl-row label {
+  display: flex; justify-content: space-between;
+  font-size: 9.5px; color: #999; margin-bottom: 2px;
+}
+.ctrl-row label span {
+  font-family: 'Oswald', monospace;
+  font-size: 9.5px; color: #fff; font-weight: 600;
+  min-width: 34px; text-align: right;
+}
+input[type=range] {
+  width: 100%; height: 3px; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background: #383838; border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 11px; height: 11px; border-radius: 50%;
+  background: #fff; cursor: pointer; border: 2px solid #555;
+}
+select {
+  background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a;
+  border-radius: 4px; padding: 3px 5px;
+  font-family: 'Oswald', sans-serif; font-size: 9.5px;
+  width: 100%; cursor: pointer; outline: none; margin-top: 2px;
+}
+.ctrl-bottom { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn-print {
+  background: #c01010; color: #fff; border: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+  padding: 7px 20px; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+}
+.btn-print:hover { background: #a00; }
+#page-note { font-size: 9px; color: #555; }
+
+/* ═══════════ PAGE PREVIEW WRAPPER ═══════════ */
+#preview-area {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+#page-preview {
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  /* width/height set by JS in px (screen scaled) */
+  position: relative;
+  overflow: auto;
+  transition: width 0.2s, height 0.2s;
+}
+
+/* content inside the page */
+#label-content {
+  padding: 8mm;
+}
+
+/* ── Section titles ── */
+.section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 8px; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: #666;
+  margin: 4mm 0 1.5mm 0;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ── Label rows ── */
+.label-row { display: flex; flex-wrap: wrap; gap: 2.5mm; margin-bottom: 1mm; }
+
+/* ── Label ── */
+.label {
+  display: flex;
+  border: 0.5mm solid #000;
+  overflow: hidden;
+  break-inside: avoid;
+  position: relative;
+}
+.label.power { height: var(--label-h-power, 10mm); }
+.label.data  { height: var(--label-h-data,  10mm); }
+
+/* ── Face ── */
+.face, .face2 {
+  width: var(--face-w, 37mm);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 1mm 1.5mm 1mm 1mm;
+  position: relative; overflow: hidden; flex-shrink: 0;
+  background: #fff;
+}
+.face  { border-right: 0.3mm dashed #ccc; }
+.face2 { border-left:  0.3mm dashed #ccc; }
+
+.face-bg {
+  position: absolute; inset: 0;
+  background-repeat: repeat;
+  pointer-events: none; z-index: 0;
+}
+
+.face-content { position: relative; z-index: 1; width: 100%; }
+
+.face-content .code {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700; letter-spacing: 0.03em; line-height: 1.05;
+  color: #000; white-space: normal; word-break: break-all;
+  display: block; width: 100%;
+}
+.face-content .desc {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; color: #222;
+  margin-top: 0.3mm; line-height: 1.2;
+  white-space: normal; word-break: break-word;
+  display: block; width: 100%;
+}
+
+/* ── Color bars (set by JS dyn style) ── */
+.cat-ac  .face  { border-left: 3mm solid var(--col-ac);  }
+.cat-ac  .face2 { border-right: 3mm solid var(--col-ac); }
+.cat-eth .face  { border-left: 3mm solid var(--col-eth); }
+.cat-eth .face2 { border-right: 3mm solid var(--col-eth);}
+.cat-fbr .face  { border-left: 3mm solid var(--col-fbr); }
+.cat-fbr .face2 { border-right: 3mm solid var(--col-fbr);}
+.cat-dc  .face  { border-left: 3mm solid var(--col-dc);  }
+.cat-dc  .face2 { border-right: 3mm solid var(--col-dc); }
+.cat-sw  .face  { border-left: 3mm solid var(--col-sw);  }
+.cat-sw  .face2 { border-right: 3mm solid var(--col-sw); }
+
+/* ── Wrap zone — transparent ── */
+.wrap-zone {
+  width: var(--wrap-w, 7mm);
+  position: relative; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: transparent;
+  border-left:  0.4mm dashed rgba(0,0,0,0.2);
+  border-right: 0.4mm dashed rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.wrap-bg {
+  position: absolute; inset: 0;
+  background-repeat: repeat;
+  pointer-events: none; z-index: 0;
+}
+.wrap-text {
+  position: relative; z-index: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 3.5pt; color: rgba(0,0,0,0.28);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex; gap: 4mm; flex-wrap: wrap; margin: 3mm 0 2mm;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 8px; font-weight: 700;
+}
+.legend-item { display: flex; align-items: center; gap: 1.5mm; }
+.legend-bar { width: 4mm; height: 9px; border-radius: 1px; }
+
+/* ═══════════ PRINT ═══════════ */
+@media print {
+  body { background: #fff !important; }
+  #ctrl-panel { display: none !important; }
+  #preview-area { padding: 0 !important; display: block !important; }
+  #page-preview {
+    box-shadow: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #label-content { padding: 0 !important; }
+  .section-title { color: #000; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════ CONTROL PANEL ═══════════ -->
+<div id="ctrl-panel">
+  <h1>⚙ LABEL SETTINGS</h1>
+  <div class="ctrl-grid">
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Icon Background</div>
+      <div class="ctrl-row">
+        <label>Opacity <span id="v-opacity">38%</span></label>
+        <input type="range" id="sl-opacity" min="0" max="100" value="14">
+      </div>
+      <div class="ctrl-row">
+        <label>Icon Size <span id="v-iconsize">3mm</span></label>
+        <input type="range" id="sl-iconsize" min="2" max="22" value="5.5" step="0.5">
+      </div>
+      <div class="ctrl-row">
+        <label>Spacing <span id="v-spacing">2mm</span></label>
+        <input type="range" id="sl-spacing" min="0" max="12" value="2.5" step="0.5">
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Font Size</div>
+      <div class="ctrl-row">
+        <label>Code <span id="v-codefont">7pt</span></label>
+        <input type="range" id="sl-codefont" min="4" max="18" value="11.5" step="0.5">
+      </div>
+      <div class="ctrl-row">
+        <label>Description <span id="v-descfont">6pt</span></label>
+        <input type="range" id="sl-descfont" min="3" max="14" value="8.5" step="0.5">
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Label Height</div>
+      <div class="ctrl-row">
+        <label>All labels <span id="v-hdata">10mm</span></label>
+        <input type="range" id="sl-hdata" min="6" max="35" value="13.5" step="0.5">
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Label Width</div>
+      <div class="ctrl-row">
+        <label>Face Width <span id="v-facewidth">37mm</span></label>
+        <input type="range" id="sl-facewidth" min="20" max="80" value="60" step="1">
+      </div>
+      <div class="ctrl-row">
+        <label>Wrap Width <span id="v-wrapwidth">7mm</span></label>
+        <input type="range" id="sl-wrapwidth" min="4" max="35" value="8" step="1">
+      </div>
+      <div class="ctrl-row">
+        <label>Color Bar <span id="v-barwidth">3mm</span></label>
+        <input type="range" id="sl-barwidth" min="0.5" max="8" value="2.5" step="0.5">
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Text Margins</div>
+      <div class="ctrl-row">
+        <label>Left &amp; Right <span id="v-padleft">1mm</span></label>
+        <input type="range" id="sl-padleft" min="0" max="10" value="1" step="0.5">
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-title">Page / Print</div>
+      <div class="ctrl-row">
+        <label>Paper Size</label>
+        <select id="sl-pagesize">
+          <option value="A4" selected>A4 (210×297mm)</option>
+          <option value="A3">A3 (297×420mm)</option>
+          <option value="A5">A5 (148×210mm)</option>
+          <option value="Letter">US Letter (216×279mm)</option>
+          <option value="Legal">US Legal (216×356mm)</option>
+          <option value="B4">B4 (250×353mm)</option>
+          <option value="B5">B5 (176×250mm)</option>
+        </select>
+      </div>
+      <div class="ctrl-row">
+        <label>Orientation</label>
+        <select id="sl-orient">
+          <option value="portrait">Portrait</option>
+          <option value="landscape" selected>Landscape</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+  <div class="ctrl-bottom">
+    <button class="btn-print" id="btn-print">🖨 Print Labels</button>
+    <span id="page-note">A4 · Portrait</span>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE PREVIEW ═══════════ -->
+<div id="preview-area">
+  <div id="page-preview">
+    <div id="label-content">
+
+      <div class="section-title">▌ Rack — AC Power</div>
+      <div class="label-row">
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-CHG-IN</div><div class="desc">Power In · Main to Inverter Charge</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-CHG-IN</div><div class="desc">Power In · Main to Inverter Charge</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-INV-OUT</div><div class="desc">Power Out · Inverter Output</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-INV-OUT</div><div class="desc">Power Out · Inverter Output</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-MAIN-BKUP</div><div class="desc">Power In · Main Backup Line</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-MAIN-BKUP</div><div class="desc">Power In · Main Backup Line</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-RACK</div><div class="desc">Power Out · To Rack</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-RACK</div><div class="desc">Power Out · To Rack</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-ROOM</div><div class="desc">Power Out · To Room</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-ROOM</div><div class="desc">Power Out · To Room</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-ROOF</div><div class="desc">Power Out · To Roof Panel</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-ROOF</div><div class="desc">Power Out · To Roof Panel</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-A</div><div class="desc">Power Out · To Dist. Switch A</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-A</div><div class="desc">Power Out · To Dist. Switch A</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-B</div><div class="desc">Power Out · To Dist. Switch B</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-B</div><div class="desc">Power Out · To Dist. Switch B</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-F</div><div class="desc">Power Out · To Dist. Switch F</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-OUT-DIST-F</div><div class="desc">Power Out · To Dist. Switch F</div></div></div></div>
+        <div class="label power cat-ac"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">AC-IN-RACK</div><div class="desc">Power In · From Rack (Roof)</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">AC-IN-RACK</div><div class="desc">Power In · From Rack (Roof)</div></div></div></div>
+      </div>
+
+      <div class="section-title">▌ Rack — DC Power</div>
+      <div class="label-row">
+        <div class="label data cat-dc"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">DC24-OUT-POE</div><div class="desc">DC 24V · To PoE Panel</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">DC24-OUT-POE</div><div class="desc">DC 24V · To PoE Panel</div></div></div></div>
+      </div>
+
+      <div class="section-title">▌ Rack — Ethernet</div>
+      <div class="label-row">
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-ROOM</div><div class="desc">Ethernet · To Room</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-ROOM</div><div class="desc">Ethernet · To Room</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-DIST-ROOF</div><div class="desc">Ethernet · To Roof Home Switch</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-DIST-ROOF</div><div class="desc">Ethernet · To Roof Home Switch</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-DIST-HOME</div><div class="desc">Ethernet · From Roof Home Switch</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-DIST-HOME</div><div class="desc">Ethernet · From Roof Home Switch</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-AHMED</div><div class="desc">Ethernet · To Ahmed Home</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-AHMED</div><div class="desc">Ethernet · To Ahmed Home</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-SARA</div><div class="desc">Ethernet · Sara</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-SARA</div><div class="desc">Ethernet · Sara</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-MOHAMED</div><div class="desc">Ethernet · Mohamed</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-MOHAMED</div><div class="desc">Ethernet · Mohamed</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-RADA</div><div class="desc">Ethernet · Rada</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-RADA</div><div class="desc">Ethernet · Rada</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-UPLINK</div><div class="desc">Ethernet Uplink · To Rack</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-HOME-UPLINK</div><div class="desc">Ethernet Uplink · To Rack</div></div></div></div>
+      </div>
+
+      <div class="section-title">▌ Rack — Ethernet with PoE (Sector cables)</div>
+      <div class="label-row">
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H1</div><div class="desc">Ethernet+PoE · Sector H1</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H1</div><div class="desc">Ethernet+PoE · Sector H1</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H2</div><div class="desc">Ethernet+PoE · Sector H2</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H2</div><div class="desc">Ethernet+PoE · Sector H2</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H3</div><div class="desc">Ethernet+PoE · Sector H3</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-POE-H3</div><div class="desc">Ethernet+PoE · Sector H3</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-SW-SECT</div><div class="desc">Ethernet+PoE · To Sector Switch</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-SW-SECT</div><div class="desc">Ethernet+PoE · To Sector Switch</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-SW-HOME</div><div class="desc">Ethernet+PoE · To Home Switch</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">ETH-SW-HOME</div><div class="desc">Ethernet+PoE · To Home Switch</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-0017</div><div class="desc">Ethernet+PoE · User 0017</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-0017</div><div class="desc">Ethernet+PoE · User 0017</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-0020</div><div class="desc">Ethernet+PoE · User 0020</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-0020</div><div class="desc">Ethernet+PoE · User 0020</div></div></div></div>
+        <div class="label data cat-eth"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-UPLINK</div><div class="desc">Fiber Uplink · To Rack</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">SW-SECT-UPLINK</div><div class="desc">Fiber Uplink · To Rack</div></div></div></div>
+      </div>
+
+      <div class="section-title">▌ Rack — Fiber</div>
+      <div class="label-row">
+        <div class="label data cat-fbr"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-ROOF</div><div class="desc">Fiber · To Roof Sector Switch</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-ROOF</div><div class="desc">Fiber · To Roof Sector Switch</div></div></div></div>
+        <div class="label data cat-fbr"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-A</div><div class="desc">Fiber · To Dist. Switch A</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-A</div><div class="desc">Fiber · To Dist. Switch A</div></div></div></div>
+        <div class="label data cat-fbr"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-B</div><div class="desc">Fiber · To Dist. Switch B</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-B</div><div class="desc">Fiber · To Dist. Switch B</div></div></div></div>
+        <div class="label data cat-fbr"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-F</div><div class="desc">Fiber · To Dist. Switch F</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-DIST-F</div><div class="desc">Fiber · To Dist. Switch F</div></div></div></div>
+        <div class="label data cat-fbr"><div class="face"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-ISP</div><div class="desc">Fiber · From ISP (Awall)</div></div></div><div class="wrap-zone"><div class="wrap-bg"></div><span class="wrap-text">wrap</span></div><div class="face2"><div class="face-bg"></div><div class="face-content"><div class="code">FBR-ISP</div><div class="desc">Fiber · From ISP (Awall)</div></div></div></div>
+      </div>
+
+      <div class="section-title" style="margin-top:3mm;">▌ Category Key</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-bar" style="background:#e02020;"></div><span>AC Power</span></div>
+        <div class="legend-item"><div class="legend-bar" style="background:#e07a00;"></div><span>DC Power</span></div>
+        <div class="legend-item"><div class="legend-bar" style="background:#1a6fd4;"></div><span>Ethernet (+ PoE where noted)</span></div>
+        <div class="legend-item"><div class="legend-bar" style="background:#b89000;"></div><span>Fiber</span></div>
+      </div>
+
+    </div><!-- /label-content -->
+  </div><!-- /page-preview -->
+</div><!-- /preview-area -->
+
+</div><!-- /app -->
+
+<!-- Dynamic styles -->
+<style id="dyn-style"></style>
+
+<script>
+// MDI (Material Design Icons) — same icon set bundled in Nerd Fonts
+// viewBox="0 0 24 24", fill-based
+
+const LUCIDE_BODIES = {
+  // mdi-lightning-bolt (nf-md-lightning_bolt U+F140B) — AC mains power
+  ac:  `<path fill="COLOR" d="M11 15H6L13 1V9H18L11 23V15Z"/>`,
+  // mdi-ethernet (nf-md-ethernet U+F0200) — RJ45 / ethernet port
+  eth: `<path fill="COLOR" d="M7,15H9V18H11V15H13V18H15V15H17V18H19V9H15V6H9V9H5V18H7V15M4.38,3H19.63C20.94,3 22,4.06 22,5.38V19.63A2.37,2.37 0 0,1 19.63,22H4.38C3.06,22 2,20.94 2,19.63V5.38C2,4.06 3.06,3 4.38,3Z"/>`,
+  // mdi-battery-charging (nf-md-battery_charging U+F0084) — DC / battery with bolt
+  dc:  `<path fill="COLOR" d="M16.67,4H15V2H9V4H7.33A1.33,1.33 0 0,0 6,5.33V20.66C6,21.4 6.6,22 7.33,22H16.66C17.4,22 18,21.4 18,20.67V5.33C18,4.6 17.4,4 16.67,4M11,20V14.5H9L13,7V12.5H15"/>`,
+  // mdi-cable-data (nf-md-cable_data U+F1394) — patch cable / fiber
+  fbr: `<path fill="COLOR" d="M7.05 3.5C5.68 4.88 5.68 7.1 7.05 8.47L15.54 16.95C16.12 17.54 16.12 18.5 15.54 19.07C14.95 19.66 14 19.66 13.41 19.07L9.17 14.83L10.23 13.77L6.7 10.23L6.34 10.59L4.93 9.17C4.54 8.78 3.91 8.78 3.5 9.17L2.1 10.59C1.71 11 1.71 11.61 2.1 12L3.5 13.41L3.16 13.77L6.7 17.3L7.76 16.24L12 20.5C13.37 21.85 15.58 21.85 16.95 20.5C18.32 19.12 18.32 16.9 16.95 15.54L8.46 7.05C7.88 6.46 7.88 5.5 8.46 4.93C9.05 4.34 10 4.34 10.59 4.93L14.83 9.17L13.77 10.23L17.3 13.77L17.66 13.41L19.07 14.83C19.46 15.22 20.1 15.22 20.5 14.83L21.9 13.41C22.29 13 22.29 12.39 21.9 12L20.5 10.59L20.84 10.23L17.3 6.7L16.24 7.76L12 3.5C10.63 2.15 8.42 2.15 7.05 3.5M2.81 11.29L4.22 9.88L5.64 11.29L4.22 12.71M18.36 12.71L19.78 11.29L21.19 12.71L19.78 14.12Z"/>`,
+};
+
+function makeSVG(body, color, iconMM, spacingMM) {
+  const pad = iconMM > 0 ? (spacingMM / iconMM) * 12 : 0;
+  const v0  = -pad, vw = 24 + pad * 2;
+  const colored = body.replace(/COLOR/g, color);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${v0} ${v0} ${vw} ${vw}">${colored}</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+const PAGE_SIZES = {
+  'A4':     [210,297], 'A3': [297,420], 'A5': [148,210],
+  'Letter': [216,279], 'Legal': [216,356], 'B4': [250,353], 'B5': [176,250]
+};
+
+const MM        = 3.7795;
+const dynStyle  = document.getElementById('dyn-style');
+const preview   = document.getElementById('page-preview');
+const g         = id => document.getElementById(id);
+const pageSt    = document.createElement('style');
+document.head.appendChild(pageSt);
+
+function update() {
+  const opacity   = g('sl-opacity').value / 100;
+  const iconsize  = parseFloat(g('sl-iconsize').value);
+  const spacing   = parseFloat(g('sl-spacing').value);
+  const codefont  = g('sl-codefont').value;
+  const descfont  = g('sl-descfont').value;
+  const hdata     = g('sl-hdata').value;
+  const facewidth = g('sl-facewidth').value;
+  const wrapwidth = g('sl-wrapwidth').value;
+  const barwidth  = g('sl-barwidth').value;
+  const padleft   = g('sl-padleft').value;
+  const pagesize  = g('sl-pagesize').value;
+  const orient    = g('sl-orient').value;
+
+  g('v-opacity').textContent   = Math.round(opacity*100)+'%';
+  g('v-iconsize').textContent  = iconsize+'mm';
+  g('v-spacing').textContent   = spacing+'mm';
+  g('v-codefont').textContent  = codefont+'pt';
+  g('v-descfont').textContent  = descfont+'pt';
+  g('v-hdata').textContent     = hdata+'mm';
+  g('v-facewidth').textContent = facewidth+'mm';
+  g('v-wrapwidth').textContent = wrapwidth+'mm';
+  g('v-barwidth').textContent  = barwidth+'mm';
+  g('v-padleft').textContent   = padleft+'mm';
+
+  let [pw,ph] = PAGE_SIZES[pagesize]||[210,297];
+  if (orient==='landscape') [pw,ph]=[ph,pw];
+  g('page-note').textContent = `${pagesize} · ${orient==='portrait'?'Portrait':'Landscape'}  (${pw}×${ph}mm)`;
+  preview.style.width     = (pw*MM)+'px';
+  preview.style.minHeight = (ph*MM)+'px';
+
+  const cats = {
+    'cat-ac':  makeSVG(LUCIDE_BODIES.ac,  '#e02020', iconsize, spacing),
+    'cat-eth': makeSVG(LUCIDE_BODIES.eth, '#1a6fd4', iconsize, spacing),
+    'cat-fbr': makeSVG(LUCIDE_BODIES.fbr, '#b89000', iconsize, spacing),
+    'cat-dc':  makeSVG(LUCIDE_BODIES.dc,  '#e07a00', iconsize, spacing),
+  };
+
+  let iconCSS = '';
+  for (const [cat,ico] of Object.entries(cats)) {
+    iconCSS +=
+      `.${cat} .face-bg,.${cat} .wrap-bg{` +
+      `background-image:${ico};` +
+      `background-size:${iconsize}mm ${iconsize}mm;` +
+      `background-repeat:repeat;opacity:${opacity};}`;
+  }
+
+  const bars = ['ac','dc','eth','fbr'].map(c =>
+    `.cat-${c} .face{border-left:${barwidth}mm solid var(--col-${c});}` +
+    `.cat-${c} .face2{border-right:${barwidth}mm solid var(--col-${c});}`
+  ).join('');
+
+  dynStyle.textContent = `
+    .label.power,.label.data{height:${hdata}mm;}
+    .face,.face2{width:${facewidth}mm;}
+    .face,.face2{padding-left:${padleft}mm;padding-right:${padleft}mm;}
+    .wrap-zone{width:${wrapwidth}mm;}
+    .face-content .code{font-size:${codefont}pt;}
+    .face-content .desc{font-size:${descfont}pt;}
+    ${iconCSS}${bars}
+  `;
+  pageSt.textContent = `@media print{@page{size:${pw}mm ${ph}mm;margin:8mm;}}`;
+}
+
+document.querySelectorAll('input[type=range],select')
+  .forEach(el => el.addEventListener('input', update));
+g('btn-print').addEventListener('click', () => setTimeout(()=>window.print(), 100));
+update();
+</script>
+</body>
+</html>
