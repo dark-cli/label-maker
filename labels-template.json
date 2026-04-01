@@ -1,45 +1,36 @@
 {
-  "info": {
-    "title": "Label Maker JSON Format Documentation",
-    "version": "1.1",
-    "qr_limitations": "For small 12-15mm physical labels, keep QR data under 40-60 characters for reliable scanning. Long URLs should be shortened.",
-    "valid_types": ["ac", "dc", "eth", "fbr", "sw"],
-    "valid_icons": ["auto", "none", "ac", "dc", "eth", "fbr", "sw"]
+  "settings": {
+    "facewidth": 63,
+    "wrapwidth": 12,
+    "hdata": 15,
+    "barwidth": 3.5,
+    "codefont": 11.5,
+    "descfont": 8.5,
+    "padleft": 6.5,
+    "iconsize": 8,
+    "spacing": 8.5,
+    "opacity": 42,
+    "stripeOpacity": 44,
+    "qrSize": 12,
+    "pagesize": "A4",
+    "orient": "landscape"
   },
+  "types": [
+    { "id": "ac",  "label": "AC Power", "color": "#e02020", "icon": "󱐋" },
+    { "id": "dc",  "label": "DC Power", "color": "#e07a00", "icon": "󱐋" },
+    { "id": "eth", "label": "Ethernet", "color": "#1a6fd4", "icon": "󰈀" },
+    { "id": "fbr", "label": "Fiber",    "color": "#b89000", "icon": "󰔖" },
+    { "id": "sw",  "label": "Switch",   "color": "#7b3fc4", "icon": "󰒄" }
+  ],
   "groups": [
     {
-      "id": "g-example-1",
-      "title": "Rack — Power & UPS",
+      "title": "Example Group",
       "labels": [
         {
-          "id": "l-p01",
-          "code": "AC-MAIN-IN",
-          "desc": "Main AC Input from DB",
-          "type": "ac",
-          "icon": "auto",
-          "qr": "https://example.com/p1"
-        },
-        {
-          "id": "l-p02",
-          "code": "DC24-BATT",
-          "desc": "Backup Battery Bank 24V",
-          "type": "dc",
-          "icon": "dc",
-          "qr": "Battery:100Ah"
-        }
-      ]
-    },
-    {
-      "id": "g-example-2",
-      "title": "Networking & Fiber",
-      "labels": [
-        {
-          "id": "l-n01",
-          "code": "ETH-UPLINK",
-          "desc": "10GbE Uplink to Core Switch",
+          "code": "ETH-01",
+          "desc": "Example Description",
           "type": "eth",
-          "icon": "auto",
-          "qr": "VLAN:10"
+          "qr": "https://example.com"
         }
       ]
     }
