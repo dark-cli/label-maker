@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Label Maker</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@v3.2.1/css/nerd-fonts.css">
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -377,6 +378,18 @@ input[type=range]::-webkit-slider-thumb {
     <input type="file" id="file-import" accept=".json" style="display:none">
     <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
   </div>
+
+  <!-- Types Management -->
+  <div class="edit-section">
+    <div class="edit-section-header">
+      <span class="edit-section-title">GLOBAL TYPES &amp; STYLES</span>
+      <button class="btn btn-secondary" id="btn-add-type" style="font-size:9px;padding:4px 10px;">+ New Type</button>
+    </div>
+    <div id="types-list">
+      <div class="types-grid" id="types-grid"></div>
+    </div>
+  </div>
+
   <div id="groups-list"></div>
 </div>
 
@@ -489,126 +502,86 @@ input[type=range]::-webkit-slider-thumb {
 <style id="dyn-style"></style>
 
 <script>
-// ─── Icon SVG paths (MDI / Lucide, viewBox 0 0 24 24) ─────────────────────
-const ICON_BODIES = {
-  ac:  `<path fill="COLOR" d="M11 15H6L13 1V9H18L11 23V15Z"/>`,
-  eth: `<path fill="COLOR" d="M7,15H9V18H11V15H13V18H15V15H17V18H19V9H15V6H9V9H5V18H7V15M4.38,3H19.63C20.94,3 22,4.06 22,5.38V19.63A2.37,2.37 0 0,1 19.63,22H4.38C3.06,22 2,20.94 2,19.63V5.38C2,4.06 3.06,3 4.38,3Z"/>`,
-  dc:  `<path fill="COLOR" d="M16.67,4H15V2H9V4H7.33A1.33,1.33 0 0,0 6,5.33V20.66C6,21.4 6.6,22 7.33,22H16.66C17.4,22 18,21.4 18,20.67V5.33C18,4.6 17.4,4 16.67,4M11,20V14.5H9L13,7V12.5H15"/>`,
-  fbr: `<path fill="COLOR" d="M7.05 3.5C5.68 4.88 5.68 7.1 7.05 8.47L15.54 16.95C16.12 17.54 16.12 18.5 15.54 19.07C14.95 19.66 14 19.66 13.41 19.07L9.17 14.83L10.23 13.77L6.7 10.23L6.34 10.59L4.93 9.17C4.54 8.78 3.91 8.78 3.5 9.17L2.1 10.59C1.71 11 1.71 11.61 2.1 12L3.5 13.41L3.16 13.77L6.7 17.3L7.76 16.24L12 20.5C13.37 21.85 15.58 21.85 16.95 20.5C18.32 19.12 18.32 16.9 16.95 15.54L8.46 7.05C7.88 6.46 7.88 5.5 8.46 4.93C9.05 4.34 10 4.34 10.59 4.93L14.83 9.17L13.77 10.23L17.3 13.77L17.66 13.41L19.07 14.83C19.46 15.22 20.1 15.22 20.5 14.83L21.9 13.41C22.29 13 22.29 12.39 21.9 12L20.5 10.59L20.84 10.23L17.3 6.7L16.24 7.76L12 3.5C10.63 2.15 8.42 2.15 7.05 3.5M2.81 11.29L4.22 9.88L5.64 11.29L4.22 12.71M18.36 12.71L19.78 11.29L21.19 12.71L19.78 14.12Z"/>`,
-  sw:  `<path fill="COLOR" d="M20.2,6H3.8C2.8,6 2,6.8 2,7.8V16.2C2,17.2 2.8,18 3.8,18H20.2C21.2,18 22,17.2 22,16.2V7.8C22,6.8 21.2,6 20.2,6M8,15H6V13H8V15M8,11H6V9H8V11M18,15H10V13H18V15M18,11H10V9H18V11Z"/>`,
+// ─── Default Data ────────────────────────────────────────────────────────
+const DEFAULT_DATA = {
+  settings: {
+    facewidth: 63, wrapwidth: 12, hdata: 15, barwidth: 3.5,
+    codefont: 11.5, descfont: 8.5, padleft: 6.5,
+    iconsize: 8, spacing: 8.5, opacity: 42, stripeOpacity: 44, qrSize: 12,
+    pagesize: 'A4', orient: 'landscape'
+  },
+  types: [
+    { id: 'ac',  label: 'AC Power', color: '#e02020', icon: '󱐋' },
+    { id: 'dc',  label: 'DC Power', color: '#e07a00', icon: '󱐋' },
+    { id: 'eth', label: 'Ethernet', color: '#1a6fd4', icon: '󰈀' },
+    { id: 'fbr', label: 'Fiber',    color: '#b89000', icon: '󰔖' },
+    { id: 'sw',  label: 'Switch',   color: '#7b3fc4', icon: '󰒄' }
+  ],
+  groups: [
+    { title: 'Main Rack', labels: [
+      { code: 'AC-CHG-IN', desc: 'Power In · Main to Inverter Charge', type: 'ac', qr: 'Grid input to charger.' }
+    ]}
+  ]
 };
 
-const TYPE_COLORS = { ac: '#e02020', eth: '#1a6fd4', fbr: '#b89000', dc: '#e07a00', sw: '#7b3fc4' };
-const TYPE_LABELS = { ac: 'AC Power', eth: 'Ethernet', fbr: 'Fiber', dc: 'DC Power', sw: 'Switch' };
-const ICON_LABELS = { auto: 'Auto (match type)', none: 'None', ...TYPE_LABELS };
-
-// ─── Default data ─────────────────────────────────────────────────────────
-const DEFAULT_GROUPS = [
-  { id: 'g-rack-ac', title: 'Rack — AC Power', labels: [
-    { id: 'l1',  code: 'AC-CHG-IN',        desc: 'Power In · Main to Inverter Charge',  type: 'ac',  icon: 'auto' },
-    { id: 'l2',  code: 'AC-INV-OUT',       desc: 'Power Out · Inverter Output',          type: 'ac',  icon: 'auto' },
-    { id: 'l3',  code: 'AC-MAIN-BKUP',     desc: 'Power In · Main Backup Line',          type: 'ac',  icon: 'auto' },
-    { id: 'l4',  code: 'AC-OUT-RACK',      desc: 'Power Out · To Rack',                  type: 'ac',  icon: 'auto' },
-    { id: 'l5',  code: 'AC-OUT-ROOM',      desc: 'Power Out · To Room',                  type: 'ac',  icon: 'auto' },
-    { id: 'l6',  code: 'AC-OUT-DIST-ROOF', desc: 'Power Out · To Roof Panel',            type: 'ac',  icon: 'auto' },
-    { id: 'l7',  code: 'AC-OUT-DIST-A',    desc: 'Power Out · To Dist. Switch A',        type: 'ac',  icon: 'auto' },
-    { id: 'l8',  code: 'AC-OUT-DIST-B',    desc: 'Power Out · To Dist. Switch B',        type: 'ac',  icon: 'auto' },
-    { id: 'l9',  code: 'AC-OUT-DIST-F',    desc: 'Power Out · To Dist. Switch F',        type: 'ac',  icon: 'auto' },
-    { id: 'l10', code: 'AC-IN-RACK',       desc: 'Power In · From Rack (Roof)',           type: 'ac',  icon: 'auto' },
-  ]},
-  { id: 'g-rack-dc', title: 'Rack — DC Power', labels: [
-    { id: 'l11', code: 'DC24-OUT-POE',     desc: 'DC 24V · To PoE Panel',                type: 'dc',  icon: 'auto' },
-  ]},
-  { id: 'g-rack-eth', title: 'Rack — Ethernet', labels: [
-    { id: 'l12', code: 'ETH-ROOM',         desc: 'Ethernet · To Room',                   type: 'eth', icon: 'auto' },
-    { id: 'l13', code: 'ETH-DIST-ROOF',    desc: 'Ethernet · To Roof Home Switch',        type: 'eth', icon: 'auto' },
-    { id: 'l14', code: 'ETH-DIST-HOME',    desc: 'Ethernet · From Roof Home Switch',      type: 'eth', icon: 'auto' },
-    { id: 'l15', code: 'ETH-AHMED',        desc: 'Ethernet · To Ahmed Home',              type: 'eth', icon: 'auto' },
-    { id: 'l16', code: 'SW-HOME-SARA',     desc: 'Ethernet · Sara',                       type: 'eth', icon: 'auto' },
-    { id: 'l17', code: 'SW-HOME-MOHAMED',  desc: 'Ethernet · Mohamed',                    type: 'eth', icon: 'auto' },
-    { id: 'l18', code: 'SW-HOME-RADA',     desc: 'Ethernet · Rada',                       type: 'eth', icon: 'auto' },
-    { id: 'l19', code: 'SW-HOME-UPLINK',   desc: 'Ethernet Uplink · To Rack',             type: 'eth', icon: 'auto' },
-  ]},
-  { id: 'g-rack-poe', title: 'Rack — Ethernet with PoE (Sector cables)', labels: [
-    { id: 'l20', code: 'ETH-POE-H1',       desc: 'Ethernet+PoE · Sector H1',              type: 'eth', icon: 'auto' },
-    { id: 'l21', code: 'ETH-POE-H2',       desc: 'Ethernet+PoE · Sector H2',              type: 'eth', icon: 'auto' },
-    { id: 'l22', code: 'ETH-POE-H3',       desc: 'Ethernet+PoE · Sector H3',              type: 'eth', icon: 'auto' },
-    { id: 'l23', code: 'ETH-SW-SECT',      desc: 'Ethernet+PoE · To Sector Switch',        type: 'eth', icon: 'auto' },
-    { id: 'l24', code: 'ETH-SW-HOME',      desc: 'Ethernet+PoE · To Home Switch',          type: 'eth', icon: 'auto' },
-    { id: 'l25', code: 'SW-SECT-0017',     desc: 'Ethernet+PoE · User 0017',               type: 'eth', icon: 'auto' },
-    { id: 'l26', code: 'SW-SECT-0020',     desc: 'Ethernet+PoE · User 0020',               type: 'eth', icon: 'auto' },
-    { id: 'l27', code: 'SW-SECT-UPLINK',   desc: 'Fiber Uplink · To Rack',                 type: 'eth', icon: 'auto' },
-  ]},
-  { id: 'g-rack-fbr', title: 'Rack — Fiber', labels: [
-    { id: 'l28', code: 'FBR-DIST-ROOF',    desc: 'Fiber · To Roof Sector Switch',           type: 'fbr', icon: 'auto' },
-    { id: 'l29', code: 'FBR-DIST-A',       desc: 'Fiber · To Dist. Switch A',               type: 'fbr', icon: 'auto' },
-    { id: 'l30', code: 'FBR-DIST-B',       desc: 'Fiber · To Dist. Switch B',               type: 'fbr', icon: 'auto' },
-    { id: 'l31', code: 'FBR-DIST-F',       desc: 'Fiber · To Dist. Switch F',               type: 'fbr', icon: 'auto' },
-    { id: 'l32', code: 'FBR-ISP',          desc: 'Fiber · From ISP (Awall)',                 type: 'fbr', icon: 'auto' },
-  ]},
-];
-
 // ─── State ────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'labelmaker-v1';
-let labelGroups = [];
-let _nextId = 200;
-function genId() { return 'x' + (_nextId++); }
+const STORAGE_KEY = 'labelmaker-v2';
+let appData = {};
 
 function saveData() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(labelGroups)); } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) {}
 }
 
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { labelGroups = JSON.parse(raw); return; }
+    if (raw) { appData = JSON.parse(raw); return; }
   } catch(e) {}
-  labelGroups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const g = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const MM = 3.7795;
+const PAGE_SIZES = { 'A4':[210,297], 'A3':[297,420], 'A5':[148,210], 'Letter':[216,279], 'Legal':[216,356], 'B4':[250,353], 'B5':[176,250] };
+
+// Canvas-based NerdFont Tiling
+function makeIconTile(char, color, sizeMM, spacingMM, opacity) {
+  const canvas = document.createElement('canvas');
+  const size = sizeMM * 10; // High res internal scale
+  const total = (sizeMM + spacingMM) * 10;
+  canvas.width = total; canvas.height = total;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.globalAlpha = opacity / 100;
+  ctx.font = `${size}px "SymbolsNerdFont"`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(char, total/2, total/2);
+  return canvas.toDataURL();
 }
 
-function makeSVG(iconKey, color, iconMM, spacingMM) {
-  const body = ICON_BODIES[iconKey];
-  if (!body) return null;
-  const pad = iconMM > 0 ? (spacingMM / iconMM) * 12 : 0;
-  const v0 = -pad, vw = 24 + pad * 2;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${v0} ${v0} ${vw} ${vw}">${body.replace(/COLOR/g, color)}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
-
-// ─── Label preview renderer ───────────────────────────────────────────────
+// ─── Label Renderer ───────────────────────────────────────────────────────
 function renderLabels() {
-  const content = document.getElementById('label-content');
-  const usedTypes = new Set();
-  const qrSize = parseFloat(g('sl-qr-size').value) || 12;
+  const content = g('label-content');
+  const s = appData.settings;
   let html = '';
 
-  for (const group of labelGroups) {
-    if (!group.labels?.length) continue;
+  appData.groups.forEach(group => {
+    if (!group.labels?.length) return;
     html += `<div class="section-title">&#9646; ${esc(group.title)}</div><div class="label-row">`;
+    group.labels.forEach(label => {
+      const type = appData.types.find(t => t.id === label.type) || appData.types[0];
+      const icon = label.icon || type.icon;
+      const iconAttr = icon === 'none' ? 'data-icon="none"' : `data-type-id="${type.id}"`;
 
-    for (const label of group.labels) {
-      // Resolve icon key: 'auto' → same as type, 'none' → null, explicit → that key
-      const iconKey = label.icon === 'auto' ? null : (label.icon === 'none' ? 'none' : label.icon);
-      const iconAttr = iconKey ? ` data-icon="${iconKey}"` : '';
-      usedTypes.add(label.type);
-
-      // QR Code Generation
       let qrImg = '';
       if (label.qr && label.qr.trim()) {
-        const qr = new QRious({
-          value: label.qr,
-          size: qrSize * MM, // Convert mm to screen px
-          level: 'M'
-        });
-        qrImg = `<img class="qr-code-img" src="${qr.toDataURL()}" style="width:${qrSize}mm;height:${qrSize}mm;margin-left:2mm;">`;
+        const qr = new QRious({ value: label.qr, size: s.qrSize * MM, level: 'M' });
+        qrImg = `<img src="${qr.toDataURL()}" style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;">`;
       }
 
-      const face = `<div class="face-bg"${iconAttr}></div>
+      const face = `<div class="face-bg" ${iconAttr}></div>
         <div class="face-content" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
           <div style="flex:1;">
             <div class="code">${esc(label.code)}</div>
@@ -617,339 +590,179 @@ function renderLabels() {
           ${qrImg}
         </div>`;
 
-      html += `<div class="label data cat-${label.type}">
+      html += `<div class="label data cat-${type.id}">
         <div class="face">${face}</div>
-        <div class="wrap-zone"><div class="wrap-bg"${iconAttr}></div><span class="wrap-text">wrap</span></div>
+        <div class="wrap-zone"><div class="wrap-bg" ${iconAttr}></div><span class="wrap-text">wrap</span></div>
         <div class="face2">${face}</div>
       </div>`;
-    }
+    });
     html += `</div>`;
-  }
+  });
 
-  // Legend — only types actually used
-  if (usedTypes.size) {
-    html += `<div class="section-title" style="margin-top:3mm;">&#9646; Category Key</div><div class="legend">`;
-    for (const type of ['ac','dc','eth','fbr','sw']) {
-      if (!usedTypes.has(type)) continue;
-      html += `<div class="legend-item"><div class="legend-bar" style="background:${TYPE_COLORS[type]};"></div><span>${TYPE_LABELS[type]}</span></div>`;
-    }
-    html += `</div>`;
-  }
+  // Legend
+  html += `<div class="section-title" style="margin-top:3mm;">&#9646; Category Key</div><div class="legend">`;
+  appData.types.forEach(t => {
+    html += `<div class="legend-item"><div class="legend-bar" style="background:${t.color};"></div><span>${esc(t.label)}</span></div>`;
+  });
+  html += `</div>`;
 
   content.innerHTML = html;
 }
 
-// ─── Dimension / style updater ────────────────────────────────────────────
-const PAGE_SIZES = {
-  'A4':[210,297],'A3':[297,420],'A5':[148,210],
-  'Letter':[216,279],'Legal':[216,356],'B4':[250,353],'B5':[176,250]
-};
-const MM = 3.7795;
-const dynStyle = document.getElementById('dyn-style');
-const preview  = document.getElementById('page-preview');
-const pageSt   = document.createElement('style');
-document.head.appendChild(pageSt);
-const g = id => document.getElementById(id);
-
+// ─── Control Logic ────────────────────────────────────────────────────────
 function update() {
-  const opacity       = g('sl-opacity').value / 100;
-  const stripeOpacity = g('sl-stripe-opacity').value / 100;
-  const iconsize      = parseFloat(g('sl-iconsize').value);
-  const spacing       = parseFloat(g('sl-spacing').value);
-  const codefont      = g('sl-codefont').value;
-  const descfont      = g('sl-descfont').value;
-  const hdata         = g('sl-hdata').value;
-  const facewidth     = g('sl-facewidth').value;
-  const wrapwidth     = g('sl-wrapwidth').value;
-  const barwidth      = g('sl-barwidth').value;
-  const padleft       = g('sl-padleft').value;
-  const pagesize      = g('sl-pagesize').value;
-  const orient        = g('sl-orient').value;
-  const qrSize        = g('sl-qr-size').value;
+  const s = appData.settings;
+  // Sync sliders to data
+  document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel select').forEach(el => {
+    const key = el.id.replace('sl-', '');
+    if (s[key] !== undefined) {
+      s[key] = el.type === 'range' ? parseFloat(el.value) : el.value;
+      const vEl = g('v-' + key);
+      if (vEl) vEl.textContent = el.value + (el.id.includes('font') ? 'pt' : (el.id.includes('opacity') ? '%' : 'mm'));
+    }
+  });
+  saveData();
 
-  g('v-opacity').textContent        = Math.round(opacity * 100) + '%';
-  g('v-stripe-opacity').textContent = Math.round(stripeOpacity * 100) + '%';
-  g('v-iconsize').textContent       = iconsize + 'mm';
-  g('v-spacing').textContent        = spacing  + 'mm';
-  g('v-codefont').textContent       = codefont + 'pt';
-  g('v-descfont').textContent       = descfont + 'pt';
-  g('v-hdata').textContent          = hdata    + 'mm';
-  g('v-facewidth').textContent      = facewidth + 'mm';
-  g('v-wrapwidth').textContent      = wrapwidth + 'mm';
-  g('v-barwidth').textContent       = barwidth  + 'mm';
-  g('v-padleft').textContent        = padleft   + 'mm';
-  g('v-qr-size').textContent        = qrSize    + 'mm';
-
-  let [pw, ph] = PAGE_SIZES[pagesize] || [210,297];
-  if (orient === 'landscape') [pw, ph] = [ph, pw];
-  g('page-note').textContent = `${pagesize} · ${orient === 'portrait' ? 'Portrait' : 'Landscape'}  (${pw}×${ph}mm)`;
+  let [pw, ph] = PAGE_SIZES[s.pagesize] || [210,297];
+  if (s.orient === 'landscape') [pw, ph] = [ph, pw];
+  g('page-note').textContent = `${s.pagesize} · ${s.orient} (${pw}×${ph}mm)`;
 
   const phPx = ph * MM;
+  const preview = g('page-preview');
   preview.style.width = (pw * MM) + 'px';
   preview.style.minHeight = phPx + 'px';
-
-  // Set CSS variables for page break visualization
-  // Uses a 2px bright red line and a light gray tint for the "non-page" gap area if any
   const breakLine = 'rgba(224, 32, 32, 0.6)'; 
   preview.style.setProperty('--page-ph-px', phPx + 'px');
   preview.style.setProperty('--page-break-bg', `repeating-linear-gradient(to bottom, transparent, transparent ${phPx - 2}px, ${breakLine} ${phPx - 2}px, ${breakLine} ${phPx}px)`);
 
-  // Re-render labels when QR settings change
   renderLabels();
 
-  // Build icon CSS:
-  //   - .cat-TYPE .face-bg (no data-icon) → auto: use type's own icon
-  //   - .cat-TYPE [data-icon="KEY"] → explicit override, colored with type color
-  //   - [data-icon="none"] → hidden
-  const bgSize = `background-size:${iconsize}mm ${iconsize}mm;background-repeat:repeat;opacity:${opacity};`;
-  let iconCSS = '';
-  for (const [type, color] of Object.entries(TYPE_COLORS)) {
-    // Auto (no data-icon attr) — icon shape = type's own icon
-    const autoUrl = makeSVG(type, color, iconsize, spacing);
-    if (autoUrl) iconCSS += `.cat-${type} .face-bg:not([data-icon]),.cat-${type} .wrap-bg:not([data-icon]){background-image:${autoUrl};${bgSize}}`;
-
-    // Explicit icon overrides — icon shape from data-icon, color from type
-    for (const iconKey of Object.keys(ICON_BODIES)) {
-      const url = makeSVG(iconKey, color, iconsize, spacing);
-      if (url) iconCSS += `.cat-${type} [data-icon="${iconKey}"]{background-image:${url};${bgSize}}`;
-    }
-  }
-  iconCSS += `[data-icon="none"]{background-image:none!important;opacity:0!important;}`;
-
-  const bars = Object.keys(TYPE_COLORS).map(c =>
-    `.cat-${c} .face{border-left:${barwidth}mm solid var(--col-${c});}` +
-    `.cat-${c} .face2{border-right:${barwidth}mm solid var(--col-${c});}` +
-    `.cat-${c} .wrap-zone{border-left:${barwidth}mm solid var(--col-${c});border-right:${barwidth}mm solid var(--col-${c});}`
-  ).join('');
-
+  // Generate dynamic CSS for types
+  let css = '';
+  appData.types.forEach(t => {
+    const tile = makeIconTile(t.icon, t.color, s.iconsize, s.spacing, s.opacity);
+    css += `
+      .cat-${t.id} .face { border-left: ${s.barwidth}mm solid ${t.color}; }
+      .cat-${t.id} .face2 { border-right: ${s.barwidth}mm solid ${t.color}; }
+      .cat-${t.id} .wrap-zone { border-left: ${s.barwidth}mm solid ${t.color}; border-right: ${s.barwidth}mm solid ${t.color}; }
+      [data-type-id="${t.id}"] { background-image: url("${tile}"); background-size: ${s.iconsize + s.spacing}mm ${s.iconsize + s.spacing}mm; opacity: 1; }
+    `;
+  });
+  
+  const stripeOpacity = s.stripeOpacity / 100;
   const stripeGrad = `repeating-linear-gradient(-45deg, rgba(0,0,0,${stripeOpacity}), rgba(0,0,0,${stripeOpacity}) 1.5mm, transparent 1.5mm, transparent 3mm)`;
 
-  dynStyle.textContent = `
-    .label.data{height:${hdata}mm;}
-    .face,.face2{width:${facewidth}mm;padding-left:${padleft}mm;padding-right:${padleft}mm;}
-    .wrap-zone{width:${wrapwidth}mm;background-image:${stripeGrad};}
-    .face-content .code{font-size:${codefont}pt;}
-    .face-content .desc{font-size:${descfont}pt;}
-    ${iconCSS}${bars}
+  g('dyn-style').textContent = css + `
+    .label.data { height: ${s.hdata}mm; }
+    .face, .face2 { width: ${s.facewidth}mm; padding: 1mm ${s.padleft}mm; }
+    .wrap-zone { width: ${s.wrapwidth}mm; background-image: ${stripeGrad}; }
+    .face-content .code { font-size: ${s.codefont}pt; }
+    .face-content .desc { font-size: ${s.descfont}pt; }
+    [data-icon="none"] { background-image: none !important; }
   `;
+  
+  const pageSt = g('page-st') || document.createElement('style');
+  pageSt.id = 'page-st';
   pageSt.textContent = `@media print{@page{size:${pw}mm ${ph}mm;margin:8mm;}}`;
+  if (!pageSt.parentNode) document.head.appendChild(pageSt);
 }
 
-// ─── Editor renderer ──────────────────────────────────────────────────────
+// ─── Editor ───────────────────────────────────────────────────────────────
 function renderEditor() {
-  const list = document.getElementById('groups-list');
+  // Types Grid
+  const typesGrid = g('types-grid');
+  typesGrid.innerHTML = '';
+  appData.types.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = 'type-card';
+    div.innerHTML = `
+      <div class="type-card-row">
+        <input type="text" class="cell-input" style="font-weight:700;color:#fff;" value="${esc(t.label)}" placeholder="Type Name">
+        <button class="btn-icon">✕</button>
+      </div>
+      <div class="type-card-row">
+        <input type="color" value="${t.color}">
+        <input type="text" class="cell-input" style="width:40px;text-align:center;font-family:SymbolsNerdFont;" value="${esc(t.icon)}" placeholder="Icon">
+        <code style="font-size:9px;color:#444;">${esc(t.id)}</code>
+      </div>
+    `;
+    const inputs = div.querySelectorAll('input');
+    inputs[0].oninput = e => { t.label = e.target.value; update(); };
+    inputs[1].oninput = e => { t.color = e.target.value; update(); };
+    inputs[2].oninput = e => { t.icon = e.target.value; update(); };
+    div.querySelector('button').onclick = () => { appData.types.splice(i, 1); renderEditor(); update(); };
+    typesGrid.appendChild(div);
+  });
+
+  // Groups/Labels
+  const list = g('groups-list');
   list.innerHTML = '';
-
-  labelGroups.forEach((group, gi) => {
+  appData.groups.forEach((group, gi) => {
     const card = document.createElement('div');
-    card.className = 'group-card';
+    card.className = 'group-card edit-section';
+    card.innerHTML = `
+      <div class="group-header edit-section-header">
+        <input type="text" class="group-title-input" value="${esc(group.title)}" placeholder="Group Title">
+        <button class="btn btn-secondary btn-add-label">+ Label</button>
+        <button class="btn-icon btn-del-group">✕</button>
+      </div>
+      <table class="labels-table">
+        <thead><tr><th>Code</th><th>Description</th><th style="width:100px">Type</th><th style="width:100px">QR</th><th style="width:28px"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    `;
+    card.querySelector('.group-title-input').oninput = e => { group.title = e.target.value; saveData(); renderLabels(); };
+    card.querySelector('.btn-add-label').onclick = () => { group.labels.push({code:'', desc:'', type:appData.types[0]?.id||'', qr:''}); renderEditor(); update(); };
+    card.querySelector('.btn-del-group').onclick = () => { appData.groups.splice(gi, 1); renderEditor(); update(); };
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'group-header';
-
-    const titleInput = document.createElement('input');
-    titleInput.className = 'group-title-input';
-    titleInput.value = group.title;
-    titleInput.placeholder = 'Group Title';
-    titleInput.addEventListener('input', e => {
-      labelGroups[gi].title = e.target.value;
-      saveData(); renderLabels();
-    });
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'btn btn-secondary';
-    addBtn.style.cssText = 'font-size:9px;padding:4px 10px;';
-    addBtn.textContent = '+ Label';
-    addBtn.addEventListener('click', () => addLabel(group.id));
-
-    const delGroupBtn = document.createElement('button');
-    delGroupBtn.className = 'btn-icon';
-    delGroupBtn.title = 'Delete group';
-    delGroupBtn.textContent = '✕';
-    delGroupBtn.addEventListener('click', () => deleteGroup(group.id));
-
-    header.appendChild(titleInput);
-    header.appendChild(addBtn);
-    header.appendChild(delGroupBtn);
-
-    // Table
-    const table = document.createElement('table');
-    table.className = 'labels-table';
-    table.innerHTML = `<thead><tr>
-      <th style="width:18%">Code</th>
-      <th>Description</th>
-      <th style="width:13%">Type</th>
-      <th style="width:12%">Icon</th>
-      <th style="width:15%">QR Data</th>
-      <th style="width:28px"></th>
-    </tr></thead>`;
-
-    const tbody = document.createElement('tbody');
-
-    group.labels.forEach((label) => {
+    const tbody = card.querySelector('tbody');
+    group.labels.forEach((label, li) => {
       const tr = document.createElement('tr');
-
-      // Code
-      const tdCode = document.createElement('td');
-      const codeIn = document.createElement('input');
-      codeIn.className = 'cell-input code';
-      codeIn.value = label.code;
-      codeIn.placeholder = 'CODE';
-      codeIn.addEventListener('input', e => {
-        label.code = e.target.value.toUpperCase();
-        codeIn.value = label.code;
-        saveData(); renderLabels();
-      });
-      tdCode.appendChild(codeIn);
-
-      // Description
-      const tdDesc = document.createElement('td');
-      const descIn = document.createElement('input');
-      descIn.className = 'cell-input';
-      descIn.value = label.desc;
-      descIn.placeholder = 'Description';
-      descIn.addEventListener('input', e => {
-        label.desc = e.target.value;
-        saveData(); renderLabels();
-      });
-      tdDesc.appendChild(descIn);
-
-      // Type (with swatch)
-      const tdType = document.createElement('td');
-      const typeWrap = document.createElement('div');
-      typeWrap.className = 'type-cell';
-      const swatch = document.createElement('div');
-      swatch.className = 'type-swatch';
-      swatch.style.background = TYPE_COLORS[label.type] || '#888';
-      const typeSel = document.createElement('select');
-      typeSel.className = 'cell-select';
-      for (const [k, v] of Object.entries(TYPE_LABELS)) {
-        const opt = document.createElement('option');
-        opt.value = k; opt.textContent = v;
-        if (k === label.type) opt.selected = true;
-        typeSel.appendChild(opt);
-      }
-      typeSel.addEventListener('change', e => {
-        label.type = e.target.value;
-        swatch.style.background = TYPE_COLORS[label.type];
-        saveData(); renderLabels();
-      });
-      typeWrap.appendChild(swatch);
-      typeWrap.appendChild(typeSel);
-      tdType.appendChild(typeWrap);
-
-      // Icon
-      const tdIcon = document.createElement('td');
-      const iconSel = document.createElement('select');
-      iconSel.className = 'cell-select';
-      for (const [k, v] of Object.entries(ICON_LABELS)) {
-        const opt = document.createElement('option');
-        opt.value = k; opt.textContent = v;
-        if (k === label.icon) opt.selected = true;
-        iconSel.appendChild(opt);
-      }
-      iconSel.addEventListener('change', e => {
-        label.icon = e.target.value;
-        saveData(); renderLabels();
-      });
-      tdIcon.appendChild(iconSel);
-
-      // QR Data
-      const tdQr = document.createElement('td');
-      const qrIn = document.createElement('input');
-      qrIn.className = 'cell-input';
-      qrIn.value = label.qr || '';
-      qrIn.placeholder = 'QR Data/URL';
-      qrIn.addEventListener('input', e => {
-        label.qr = e.target.value;
-        saveData(); renderLabels();
-      });
-      tdQr.appendChild(qrIn);
-
-      // Delete
-      const tdDel = document.createElement('td');
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn-icon';
-      delBtn.textContent = '✕';
-      delBtn.title = 'Delete label';
-      delBtn.addEventListener('click', () => { deleteLabel(group.id, label.id); });
-      tdDel.appendChild(delBtn);
-
-      tr.appendChild(tdCode);
-      tr.appendChild(tdDesc);
-      tr.appendChild(tdType);
-      tr.appendChild(tdIcon);
-      tr.appendChild(tdQr);
-      tr.appendChild(tdDel);
+      tr.innerHTML = `
+        <td><input type="text" class="cell-input code" value="${esc(label.code)}" placeholder="CODE"></td>
+        <td><input type="text" class="cell-input" value="${esc(label.desc)}" placeholder="Description"></td>
+        <td><select class="cell-select">${appData.types.map(t => `<option value="${t.id}" ${label.type===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select></td>
+        <td><input type="text" class="cell-input" value="${esc(label.qr)}" placeholder="QR Data"></td>
+        <td><button class="btn-icon">✕</button></td>
+      `;
+      const ins = tr.querySelectorAll('input, select');
+      ins[0].oninput = e => { label.code = e.target.value.toUpperCase(); e.target.value = label.code; saveData(); renderLabels(); };
+      ins[1].oninput = e => { label.desc = e.target.value; saveData(); renderLabels(); };
+      ins[2].onchange = e => { label.type = e.target.value; saveData(); renderLabels(); update(); };
+      ins[3].oninput = e => { label.qr = e.target.value; saveData(); renderLabels(); };
+      tr.querySelector('button').onclick = () => { group.labels.splice(li, 1); renderEditor(); update(); };
       tbody.appendChild(tr);
     });
-
-    table.appendChild(tbody);
-    card.appendChild(header);
-    card.appendChild(table);
     list.appendChild(card);
   });
 }
 
-// ─── Data mutations ───────────────────────────────────────────────────────
-function addGroup() {
-  labelGroups.push({ id: genId(), title: 'New Group', labels: [] });
-  saveData(); renderEditor(); renderLabels();
-  // Scroll to new group
-  document.getElementById('groups-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+// ─── Actions ──────────────────────────────────────────────────────────────
+function syncSlidersToData() {
+  const s = appData.settings;
+  Object.keys(s).forEach(k => { const el = g('sl-'+k); if (el) el.value = s[k]; });
 }
 
-function deleteGroup(gid) {
-  if (labelGroups.find(g => g.id === gid)?.labels.length > 0) {
-    if (!confirm('Delete this group and all its labels?')) return;
-  }
-  labelGroups = labelGroups.filter(g => g.id !== gid);
-  saveData(); renderEditor(); renderLabels();
-}
-
-function addLabel(gid) {
-  const group = labelGroups.find(g => g.id === gid);
-  if (!group) return;
-  // Guess type from last label in group, or first label of any group, or 'eth'
-  const lastType = group.labels[group.labels.length - 1]?.type ?? 'eth';
-  group.labels.push({ id: genId(), code: '', desc: '', type: lastType, icon: 'auto', qr: '' });
-  saveData(); renderEditor(); renderLabels();
-}
-
-function deleteLabel(gid, lid) {
-  const group = labelGroups.find(g => g.id === gid);
-  if (!group) return;
-  group.labels = group.labels.filter(l => l.id !== lid);
-  saveData(); renderEditor(); renderLabels();
-}
-
-// ─── Import / Export ──────────────────────────────────────────────────────
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(labelGroups, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'labels.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
-function importJSON(file) {
+g('btn-add-group').onclick = () => { appData.groups.push({title:'New Group', labels:[]}); renderEditor(); };
+g('btn-add-type').onclick = () => { appData.types.push({id:'t'+Date.now(), label:'New Type', color:'#888', icon:'󰋙'}); renderEditor(); };
+g('btn-export').onclick = () => {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'label-maker-data.json'; a.click();
+};
+g('btn-import').onclick = () => g('file-import').click();
+g('file-import').onchange = e => {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) throw new Error('Expected an array of groups');
-      labelGroups = data;
-      saveData(); renderEditor(); renderLabels();
-    } catch(err) {
-      alert('Import failed: ' + err.message);
-    }
+      if (!data.groups || !data.types) throw new Error('Invalid format');
+      appData = data; syncSlidersToData(); renderEditor(); update();
+    } catch(err) { alert('Import failed: ' + err.message); }
   };
-  reader.readAsText(file);
-}
+  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
+  e.target.value = '';
+};
 
-// ─── Tab switching ────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
@@ -958,16 +771,11 @@ function switchTab(name) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 loadData();
+syncSlidersToData();
 renderEditor();
-
-document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
-document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel select').forEach(el => el.addEventListener('input', update));
-g('btn-print').addEventListener('click',    () => setTimeout(() => window.print(), 100));
-g('btn-add-group').addEventListener('click', addGroup);
-g('btn-export').addEventListener('click',   exportJSON);
-g('btn-import').addEventListener('click',   () => g('file-import').click());
-g('file-import').addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
-
+document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+document.querySelectorAll('#ctrl-panel input, #ctrl-panel select').forEach(el => el.oninput = update);
+g('btn-print').onclick = () => setTimeout(() => window.print(), 100);
 update();
 </script>
 </body>
