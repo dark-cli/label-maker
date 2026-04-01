@@ -306,9 +306,8 @@ input[type=range]::-webkit-slider-thumb {
 .wrap-zone {
   width: var(--wrap-w, 7mm);
   position: relative; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; background: transparent;
-  border-left: 0.4mm dashed rgba(0,0,0,0.2);
-  border-right: 0.4mm dashed rgba(0,0,0,0.2);
+  flex-shrink: 0;
+  background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06) 1.5mm, transparent 1.5mm, transparent 3mm);
   overflow: hidden;
 }
 .wrap-bg {
@@ -375,50 +374,18 @@ input[type=range]::-webkit-slider-thumb {
     <div class="ctrl-grid">
 
       <div class="ctrl-group">
-        <div class="ctrl-group-title">Icon Background</div>
-        <div class="ctrl-row">
-          <label>Opacity <span id="v-opacity"></span></label>
-          <input type="range" id="sl-opacity" min="0" max="100" value="14">
-        </div>
-        <div class="ctrl-row">
-          <label>Icon Size <span id="v-iconsize"></span></label>
-          <input type="range" id="sl-iconsize" min="2" max="22" value="5.5" step="0.5">
-        </div>
-        <div class="ctrl-row">
-          <label>Spacing <span id="v-spacing"></span></label>
-          <input type="range" id="sl-spacing" min="0" max="12" value="2.5" step="0.5">
-        </div>
-      </div>
-
-      <div class="ctrl-group">
-        <div class="ctrl-group-title">Font Size</div>
-        <div class="ctrl-row">
-          <label>Code <span id="v-codefont"></span></label>
-          <input type="range" id="sl-codefont" min="4" max="18" value="11.5" step="0.5">
-        </div>
-        <div class="ctrl-row">
-          <label>Description <span id="v-descfont"></span></label>
-          <input type="range" id="sl-descfont" min="3" max="14" value="8.5" step="0.5">
-        </div>
-      </div>
-
-      <div class="ctrl-group">
-        <div class="ctrl-group-title">Label Height</div>
-        <div class="ctrl-row">
-          <label>All labels <span id="v-hdata"></span></label>
-          <input type="range" id="sl-hdata" min="6" max="35" value="13.5" step="0.5">
-        </div>
-      </div>
-
-      <div class="ctrl-group">
-        <div class="ctrl-group-title">Label Width</div>
+        <div class="ctrl-group-title">Label Dimensions</div>
         <div class="ctrl-row">
           <label>Face Width <span id="v-facewidth"></span></label>
-          <input type="range" id="sl-facewidth" min="20" max="80" value="60" step="1">
+          <input type="range" id="sl-facewidth" min="20" max="80" value="65" step="1">
         </div>
         <div class="ctrl-row">
           <label>Wrap Width <span id="v-wrapwidth"></span></label>
           <input type="range" id="sl-wrapwidth" min="4" max="35" value="8" step="1">
+        </div>
+        <div class="ctrl-row">
+          <label>Label Height <span id="v-hdata"></span></label>
+          <input type="range" id="sl-hdata" min="6" max="35" value="13.5" step="0.5">
         </div>
         <div class="ctrl-row">
           <label>Color Bar <span id="v-barwidth"></span></label>
@@ -427,15 +394,43 @@ input[type=range]::-webkit-slider-thumb {
       </div>
 
       <div class="ctrl-group">
-        <div class="ctrl-group-title">Text Margins</div>
+        <div class="ctrl-group-title">Text & Padding</div>
         <div class="ctrl-row">
-          <label>Left &amp; Right <span id="v-padleft"></span></label>
-          <input type="range" id="sl-padleft" min="0" max="10" value="1" step="0.5">
+          <label>Code Size <span id="v-codefont"></span></label>
+          <input type="range" id="sl-codefont" min="4" max="18" value="11.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Desc Size <span id="v-descfont"></span></label>
+          <input type="range" id="sl-descfont" min="3" max="14" value="8.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Side Padding <span id="v-padleft"></span></label>
+          <input type="range" id="sl-padleft" min="0" max="10" value="6.5" step="0.5">
         </div>
       </div>
 
       <div class="ctrl-group">
-        <div class="ctrl-group-title">Page / Print</div>
+        <div class="ctrl-group-title">Graphics & Icons</div>
+        <div class="ctrl-row">
+          <label>Icon Size <span id="v-iconsize"></span></label>
+          <input type="range" id="sl-iconsize" min="2" max="22" value="5.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Icon Spacing <span id="v-spacing"></span></label>
+          <input type="range" id="sl-spacing" min="0" max="12" value="2.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Icon Opacity <span id="v-opacity"></span></label>
+          <input type="range" id="sl-opacity" min="0" max="100" value="62">
+        </div>
+        <div class="ctrl-row">
+          <label>Stripe Opacity <span id="v-stripe-opacity"></span></label>
+          <input type="range" id="sl-stripe-opacity" min="0" max="50" value="6">
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Page Setup</div>
         <div class="ctrl-row">
           <label>Paper Size</label>
           <select id="sl-pagesize">
@@ -624,29 +619,31 @@ document.head.appendChild(pageSt);
 const g = id => document.getElementById(id);
 
 function update() {
-  const opacity   = g('sl-opacity').value / 100;
-  const iconsize  = parseFloat(g('sl-iconsize').value);
-  const spacing   = parseFloat(g('sl-spacing').value);
-  const codefont  = g('sl-codefont').value;
-  const descfont  = g('sl-descfont').value;
-  const hdata     = g('sl-hdata').value;
-  const facewidth = g('sl-facewidth').value;
-  const wrapwidth = g('sl-wrapwidth').value;
-  const barwidth  = g('sl-barwidth').value;
-  const padleft   = g('sl-padleft').value;
-  const pagesize  = g('sl-pagesize').value;
-  const orient    = g('sl-orient').value;
+  const opacity       = g('sl-opacity').value / 100;
+  const stripeOpacity = g('sl-stripe-opacity').value / 100;
+  const iconsize      = parseFloat(g('sl-iconsize').value);
+  const spacing       = parseFloat(g('sl-spacing').value);
+  const codefont      = g('sl-codefont').value;
+  const descfont      = g('sl-descfont').value;
+  const hdata         = g('sl-hdata').value;
+  const facewidth     = g('sl-facewidth').value;
+  const wrapwidth     = g('sl-wrapwidth').value;
+  const barwidth      = g('sl-barwidth').value;
+  const padleft       = g('sl-padleft').value;
+  const pagesize      = g('sl-pagesize').value;
+  const orient        = g('sl-orient').value;
 
-  g('v-opacity').textContent   = Math.round(opacity * 100) + '%';
-  g('v-iconsize').textContent  = iconsize + 'mm';
-  g('v-spacing').textContent   = spacing  + 'mm';
-  g('v-codefont').textContent  = codefont + 'pt';
-  g('v-descfont').textContent  = descfont + 'pt';
-  g('v-hdata').textContent     = hdata    + 'mm';
-  g('v-facewidth').textContent = facewidth + 'mm';
-  g('v-wrapwidth').textContent = wrapwidth + 'mm';
-  g('v-barwidth').textContent  = barwidth  + 'mm';
-  g('v-padleft').textContent   = padleft   + 'mm';
+  g('v-opacity').textContent        = Math.round(opacity * 100) + '%';
+  g('v-stripe-opacity').textContent = Math.round(stripeOpacity * 100) + '%';
+  g('v-iconsize').textContent       = iconsize + 'mm';
+  g('v-spacing').textContent        = spacing  + 'mm';
+  g('v-codefont').textContent       = codefont + 'pt';
+  g('v-descfont').textContent       = descfont + 'pt';
+  g('v-hdata').textContent          = hdata    + 'mm';
+  g('v-facewidth').textContent      = facewidth + 'mm';
+  g('v-wrapwidth').textContent      = wrapwidth + 'mm';
+  g('v-barwidth').textContent       = barwidth  + 'mm';
+  g('v-padleft').textContent        = padleft   + 'mm';
 
   let [pw, ph] = PAGE_SIZES[pagesize] || [210,297];
   if (orient === 'landscape') [pw, ph] = [ph, pw];
@@ -675,13 +672,16 @@ function update() {
 
   const bars = Object.keys(TYPE_COLORS).map(c =>
     `.cat-${c} .face{border-left:${barwidth}mm solid var(--col-${c});}` +
-    `.cat-${c} .face2{border-right:${barwidth}mm solid var(--col-${c});}`
+    `.cat-${c} .face2{border-right:${barwidth}mm solid var(--col-${c});}` +
+    `.cat-${c} .wrap-zone{border-left:${barwidth}mm solid var(--col-${c});border-right:${barwidth}mm solid var(--col-${c});}`
   ).join('');
+
+  const stripeGrad = `repeating-linear-gradient(-45deg, rgba(0,0,0,${stripeOpacity}), rgba(0,0,0,${stripeOpacity}) 1.5mm, transparent 1.5mm, transparent 3mm)`;
 
   dynStyle.textContent = `
     .label.data{height:${hdata}mm;}
     .face,.face2{width:${facewidth}mm;padding-left:${padleft}mm;padding-right:${padleft}mm;}
-    .wrap-zone{width:${wrapwidth}mm;}
+    .wrap-zone{width:${wrapwidth}mm;background-image:${stripeGrad};}
     .face-content .code{font-size:${codefont}pt;}
     .face-content .desc{font-size:${descfont}pt;}
     ${iconCSS}${bars}
