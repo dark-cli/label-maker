@@ -236,11 +236,15 @@ input[type=range]::-webkit-slider-thumb {
 #page-preview {
   background: #fff;
   box-shadow: 0 4px 24px rgba(0,0,0,0.35);
-  position: relative; overflow: hidden;
+  position: relative; overflow: visible;
   transition: width 0.2s, height 0.2s;
+  /* Page break visualization via background */
+  background-image: var(--page-break-bg);
+  background-size: 100% var(--page-ph-px);
+  background-repeat: repeat-y;
 }
 
-#label-content { padding: 8mm; }
+#label-content { padding: 8mm; min-height: 100%; }
 
 /* ── Section titles ── */
 .section-title {
@@ -248,16 +252,21 @@ input[type=range]::-webkit-slider-thumb {
   font-size: 8px; font-weight: 600; letter-spacing: 0.2em;
   text-transform: uppercase; color: #666;
   margin: 4mm 0 1.5mm 0;
+  break-after: avoid;
 }
 .section-title:first-child { margin-top: 0; }
 
 /* ── Label rows ── */
-.label-row { display: flex; flex-wrap: wrap; gap: 2.5mm; margin-bottom: 1mm; }
+.label-row {
+  display: flex; flex-wrap: wrap; gap: 2.5mm; margin-bottom: 1mm;
+  break-inside: auto;
+}
 
 /* ── Label ── */
 .label {
   display: flex; border: 0.5mm solid #000;
   overflow: hidden; break-inside: avoid; position: relative;
+  margin-bottom: 1px; /* Small gap to help with break-inside calculation */
 }
 
 /* ── Face ── */
@@ -333,13 +342,17 @@ input[type=range]::-webkit-slider-thumb {
 
 /* ═══════════ PRINT ═══════════ */
 @media print {
-  body { background: #fff !important; }
+  body { background: #fff !important; overflow: visible !important; }
+  #app { height: auto !important; overflow: visible !important; display: block !important; }
   #tab-bar, #panel-edit { display: none !important; }
-  #panel-preview { display: flex !important; }
+  #panel-preview { display: block !important; overflow: visible !important; height: auto !important; }
   #ctrl-panel { display: none !important; }
   #preview-area { padding: 0 !important; display: block !important; overflow: visible !important; }
-  #page-preview { box-shadow: none !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-  #label-content { padding: 0 !important; }
+  #page-preview {
+    box-shadow: none !important; width: 100% !important; height: auto !important;
+    overflow: visible !important; background-image: none !important;
+  }
+  #label-content { padding: 0 !important; overflow: visible !important; }
   .section-title { color: #000; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
@@ -670,8 +683,16 @@ function update() {
   let [pw, ph] = PAGE_SIZES[pagesize] || [210,297];
   if (orient === 'landscape') [pw, ph] = [ph, pw];
   g('page-note').textContent = `${pagesize} · ${orient === 'portrait' ? 'Portrait' : 'Landscape'}  (${pw}×${ph}mm)`;
-  preview.style.width    = (pw * MM) + 'px';
-  preview.style.minHeight = (ph * MM) + 'px';
+
+  const phPx = ph * MM;
+  preview.style.width = (pw * MM) + 'px';
+  preview.style.minHeight = phPx + 'px';
+
+  // Set CSS variables for page break visualization
+  // Uses a 2px bright red line and a light gray tint for the "non-page" gap area if any
+  const breakLine = 'rgba(224, 32, 32, 0.6)'; 
+  preview.style.setProperty('--page-ph-px', phPx + 'px');
+  preview.style.setProperty('--page-break-bg', `repeating-linear-gradient(to bottom, transparent, transparent ${phPx - 2}px, ${breakLine} ${phPx - 2}px, ${breakLine} ${phPx}px)`);
 
   // Re-render labels when QR settings change
   renderLabels();
