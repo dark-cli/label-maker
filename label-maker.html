@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Label Maker</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -377,19 +378,19 @@ input[type=range]::-webkit-slider-thumb {
         <div class="ctrl-group-title">Label Dimensions</div>
         <div class="ctrl-row">
           <label>Face Width <span id="v-facewidth"></span></label>
-          <input type="range" id="sl-facewidth" min="20" max="80" value="65" step="1">
+          <input type="range" id="sl-facewidth" min="20" max="80" value="63" step="1">
         </div>
         <div class="ctrl-row">
           <label>Wrap Width <span id="v-wrapwidth"></span></label>
-          <input type="range" id="sl-wrapwidth" min="4" max="35" value="8" step="1">
+          <input type="range" id="sl-wrapwidth" min="4" max="35" value="12" step="1">
         </div>
         <div class="ctrl-row">
           <label>Label Height <span id="v-hdata"></span></label>
-          <input type="range" id="sl-hdata" min="6" max="35" value="13.5" step="0.5">
+          <input type="range" id="sl-hdata" min="6" max="35" value="15" step="0.5">
         </div>
         <div class="ctrl-row">
           <label>Color Bar <span id="v-barwidth"></span></label>
-          <input type="range" id="sl-barwidth" min="0.5" max="8" value="2.5" step="0.5">
+          <input type="range" id="sl-barwidth" min="0.5" max="8" value="3.5" step="0.5">
         </div>
       </div>
 
@@ -413,19 +414,23 @@ input[type=range]::-webkit-slider-thumb {
         <div class="ctrl-group-title">Graphics & Icons</div>
         <div class="ctrl-row">
           <label>Icon Size <span id="v-iconsize"></span></label>
-          <input type="range" id="sl-iconsize" min="2" max="22" value="5.5" step="0.5">
+          <input type="range" id="sl-iconsize" min="2" max="22" value="8" step="0.5">
         </div>
         <div class="ctrl-row">
           <label>Icon Spacing <span id="v-spacing"></span></label>
-          <input type="range" id="sl-spacing" min="0" max="12" value="2.5" step="0.5">
+          <input type="range" id="sl-spacing" min="0" max="12" value="8.5" step="0.5">
         </div>
         <div class="ctrl-row">
           <label>Icon Opacity <span id="v-opacity"></span></label>
-          <input type="range" id="sl-opacity" min="0" max="100" value="62">
+          <input type="range" id="sl-opacity" min="0" max="100" value="42">
         </div>
         <div class="ctrl-row">
           <label>Stripe Opacity <span id="v-stripe-opacity"></span></label>
-          <input type="range" id="sl-stripe-opacity" min="0" max="50" value="6">
+          <input type="range" id="sl-stripe-opacity" min="0" max="100" value="44">
+        </div>
+        <div class="ctrl-row">
+          <label>QR Size <span id="v-qr-size"></span></label>
+          <input type="range" id="sl-qr-size" min="5" max="25" value="12" step="0.5">
         </div>
       </div>
 
@@ -566,6 +571,7 @@ function makeSVG(iconKey, color, iconMM, spacingMM) {
 function renderLabels() {
   const content = document.getElementById('label-content');
   const usedTypes = new Set();
+  const qrSize = parseFloat(g('sl-qr-size').value) || 12;
   let html = '';
 
   for (const group of labelGroups) {
@@ -578,10 +584,24 @@ function renderLabels() {
       const iconAttr = iconKey ? ` data-icon="${iconKey}"` : '';
       usedTypes.add(label.type);
 
+      // QR Code Generation
+      let qrImg = '';
+      if (label.qr && label.qr.trim()) {
+        const qr = new QRious({
+          value: label.qr,
+          size: qrSize * MM, // Convert mm to screen px
+          level: 'M'
+        });
+        qrImg = `<img class="qr-code-img" src="${qr.toDataURL()}" style="width:${qrSize}mm;height:${qrSize}mm;margin-left:2mm;">`;
+      }
+
       const face = `<div class="face-bg"${iconAttr}></div>
-        <div class="face-content">
-          <div class="code">${esc(label.code)}</div>
-          <div class="desc">${esc(label.desc)}</div>
+        <div class="face-content" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <div style="flex:1;">
+            <div class="code">${esc(label.code)}</div>
+            <div class="desc">${esc(label.desc)}</div>
+          </div>
+          ${qrImg}
         </div>`;
 
       html += `<div class="label data cat-${label.type}">
@@ -632,6 +652,7 @@ function update() {
   const padleft       = g('sl-padleft').value;
   const pagesize      = g('sl-pagesize').value;
   const orient        = g('sl-orient').value;
+  const qrSize        = g('sl-qr-size').value;
 
   g('v-opacity').textContent        = Math.round(opacity * 100) + '%';
   g('v-stripe-opacity').textContent = Math.round(stripeOpacity * 100) + '%';
@@ -644,12 +665,16 @@ function update() {
   g('v-wrapwidth').textContent      = wrapwidth + 'mm';
   g('v-barwidth').textContent       = barwidth  + 'mm';
   g('v-padleft').textContent        = padleft   + 'mm';
+  g('v-qr-size').textContent        = qrSize    + 'mm';
 
   let [pw, ph] = PAGE_SIZES[pagesize] || [210,297];
   if (orient === 'landscape') [pw, ph] = [ph, pw];
   g('page-note').textContent = `${pagesize} · ${orient === 'portrait' ? 'Portrait' : 'Landscape'}  (${pw}×${ph}mm)`;
   preview.style.width    = (pw * MM) + 'px';
   preview.style.minHeight = (ph * MM) + 'px';
+
+  // Re-render labels when QR settings change
+  renderLabels();
 
   // Build icon CSS:
   //   - .cat-TYPE .face-bg (no data-icon) → auto: use type's own icon
@@ -735,6 +760,7 @@ function renderEditor() {
       <th>Description</th>
       <th style="width:13%">Type</th>
       <th style="width:12%">Icon</th>
+      <th style="width:15%">QR Data</th>
       <th style="width:28px"></th>
     </tr></thead>`;
 
@@ -808,6 +834,18 @@ function renderEditor() {
       });
       tdIcon.appendChild(iconSel);
 
+      // QR Data
+      const tdQr = document.createElement('td');
+      const qrIn = document.createElement('input');
+      qrIn.className = 'cell-input';
+      qrIn.value = label.qr || '';
+      qrIn.placeholder = 'QR Data/URL';
+      qrIn.addEventListener('input', e => {
+        label.qr = e.target.value;
+        saveData(); renderLabels();
+      });
+      tdQr.appendChild(qrIn);
+
       // Delete
       const tdDel = document.createElement('td');
       const delBtn = document.createElement('button');
@@ -821,6 +859,7 @@ function renderEditor() {
       tr.appendChild(tdDesc);
       tr.appendChild(tdType);
       tr.appendChild(tdIcon);
+      tr.appendChild(tdQr);
       tr.appendChild(tdDel);
       tbody.appendChild(tr);
     });
@@ -853,7 +892,7 @@ function addLabel(gid) {
   if (!group) return;
   // Guess type from last label in group, or first label of any group, or 'eth'
   const lastType = group.labels[group.labels.length - 1]?.type ?? 'eth';
-  group.labels.push({ id: genId(), code: '', desc: '', type: lastType, icon: 'auto' });
+  group.labels.push({ id: genId(), code: '', desc: '', type: lastType, icon: 'auto', qr: '' });
   saveData(); renderEditor(); renderLabels();
 }
 
@@ -899,7 +938,6 @@ function switchTab(name) {
 // ─── Init ─────────────────────────────────────────────────────────────────
 loadData();
 renderEditor();
-renderLabels();
 
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel select').forEach(el => el.addEventListener('input', update));

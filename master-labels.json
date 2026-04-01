@@ -1,0 +1,49 @@
+[
+  {
+    "id": "g-rack",
+    "title": "Main Rack",
+    "labels": [
+      { "id": "r1", "code": "AC-CHG-IN", "desc": "Power In · Main to Inverter Charge", "type": "ac", "icon": "auto", "qr": "Main grid power entering the rack to feed the inverter/charger unit." },
+      { "id": "r2", "code": "AC-INV-OUT", "desc": "Power Out · Inverter Output", "type": "ac", "icon": "auto", "qr": "Clean AC power output from the inverter, serving as the primary power source for the distribution system." },
+      { "id": "r3", "code": "AC-MAIN-BKUP", "desc": "Power In · Main Backup Line", "type": "ac", "icon": "auto", "qr": "Secondary AC power line from the main grid, used as a backup fallback for the system." },
+      { "id": "r4", "code": "AC-OUT-RACK", "desc": "Power Out · To Rack", "type": "ac", "icon": "auto", "qr": "Power supply feeding the main network rack components and PDUs." },
+      { "id": "r5", "code": "AC-OUT-ROOM", "desc": "Power Out · To Room", "type": "ac", "icon": "auto", "qr": "Power supply feeding the electrical outlets in the local server room." },
+      { "id": "r6", "code": "AC-OUT-DIST-ROOF", "desc": "Power Out · To Roof Panel", "type": "ac", "icon": "auto", "qr": "AC power line running from the rack to the distribution panel on the roof." },
+      { "id": "r7", "code": "AC-OUT-DIST-A", "desc": "Power Out · To Dist. Switch A", "type": "ac", "icon": "auto", "qr": "AC power supply for neighborhood distribution switch A." },
+      { "id": "r8", "code": "AC-OUT-DIST-B", "desc": "Power Out · To Dist. Switch B", "type": "ac", "icon": "auto", "qr": "AC power supply for neighborhood distribution switch B." },
+      { "id": "r9", "code": "AC-OUT-DIST-F", "desc": "Power Out · To Dist. Switch F", "type": "ac", "icon": "auto", "qr": "AC power supply for neighborhood distribution switch F." },
+      { "id": "r10", "code": "ETH-ROOM", "desc": "Ethernet · To Room", "type": "eth", "icon": "auto", "qr": "Local Ethernet copper connection for the room network." },
+      { "id": "r11", "code": "ETH-DIST-ROOF", "desc": "Ethernet · To Roof Panel Main Switch", "type": "eth", "icon": "auto", "qr": "Primary Ethernet uplink to the main distribution switch on the roof." },
+      { "id": "r12", "code": "ETH-DIST-HOME", "desc": "Ethernet · From Roof Home Switch", "type": "eth", "icon": "auto", "qr": "Ethernet downlink from the roof home-users switch back to the rack." },
+      { "id": "r13", "code": "ETH-AHMED", "desc": "Ethernet · To Ahmed Home", "type": "eth", "icon": "auto", "qr": "Direct Ethernet internet connection provided to Ahmed's home." },
+      { "id": "r14", "code": "FBR-DIST-ROOF", "desc": "Fiber · To Roof Panel Sector Switch", "type": "fbr", "icon": "auto", "qr": "Fiber optic uplink to the sector distribution switch on the roof." },
+      { "id": "r15", "code": "FBR-DIST-A", "desc": "Fiber · To Dist. Switch A", "type": "fbr", "icon": "auto", "qr": "Fiber optic link to neighborhood distribution switch A." },
+      { "id": "r16", "code": "FBR-DIST-B", "desc": "Fiber · To Dist. Switch B", "type": "fbr", "icon": "auto", "qr": "Fiber optic link to neighborhood distribution switch B." },
+      { "id": "r17", "code": "FBR-DIST-F", "desc": "Fiber · To Dist. Switch F", "type": "fbr", "icon": "auto", "qr": "Fiber optic link to neighborhood distribution switch F." },
+      { "id": "r18", "code": "FBR-ISP", "desc": "Fiber · From ISP (Awall)", "type": "fbr", "icon": "auto", "qr": "Main fiber internet arrival from the ISP (Awall)." }
+    ]
+  },
+  {
+    "id": "g-roof",
+    "title": "Roof Distribution Panel",
+    "labels": [
+      { "id": "rf1", "code": "AC-IN-RACK", "desc": "Power In · From Rack", "type": "ac", "icon": "auto", "qr": "AC power input arriving from the main rack distribution line." },
+      { "id": "rf2", "code": "DC24-OUT-POE", "desc": "DC 24V · To PoE Panel", "type": "dc", "icon": "auto", "qr": "24V DC power output from the transformer to the PoE injection panel." },
+      { "id": "rf3", "code": "POE-SECTOR-H1", "desc": "PoE Out · Sector H1", "type": "eth", "icon": "auto", "qr": "PoE power and data for Wireless Sector Radio H1." },
+      { "id": "rf4", "code": "POE-SECTOR-H2", "desc": "PoE Out · Sector H2", "type": "eth", "icon": "auto", "qr": "PoE power and data for Wireless Sector Radio H2." },
+      { "id": "rf5", "code": "POE-SECTOR-H3", "desc": "PoE Out · Sector H3", "type": "eth", "icon": "auto", "qr": "PoE power and data for Wireless Sector Radio H3." },
+      { "id": "rf6", "code": "POE-SW-SECT", "desc": "PoE Out · Sector Switch", "type": "eth", "icon": "auto", "qr": "PoE power supply for the Sector distribution switch." },
+      { "id": "rf7", "code": "POE-SW-HOME", "desc": "PoE Out · Home Switch", "type": "eth", "icon": "auto", "qr": "PoE power supply for the Home-users distribution switch." },
+      { "id": "rf8", "code": "SW-SECT-H1", "desc": "Port · Sector H1", "type": "sw", "icon": "auto", "qr": "Network port for Wireless Sector radio H1." },
+      { "id": "rf9", "code": "SW-SECT-H2", "desc": "Port · Sector H2", "type": "sw", "icon": "auto", "qr": "Network port for Wireless Sector radio H2." },
+      { "id": "rf10", "code": "SW-SECT-H3", "desc": "Port · Sector H3", "type": "sw", "icon": "auto", "qr": "Network port for Wireless Sector radio H3." },
+      { "id": "rf11", "code": "SW-SECT-0017", "desc": "Port · User 0017", "type": "sw", "icon": "auto", "qr": "Direct Ethernet connection for resident user 0017." },
+      { "id": "rf12", "code": "SW-SECT-0020", "desc": "Port · User 0020", "type": "sw", "icon": "auto", "qr": "Direct Ethernet connection for resident user 0020." },
+      { "id": "rf13", "code": "SW-SECT-UPLINK", "desc": "Fiber Uplink · To Rack", "type": "sw", "icon": "fbr", "qr": "Fiber optic uplink connecting the sector switch to the main rack." },
+      { "id": "rf14", "code": "SW-HOME-SARA", "desc": "Port · Sara", "type": "sw", "icon": "auto", "qr": "Direct Ethernet connection for resident Sara's apartment." },
+      { "id": "rf15", "code": "SW-HOME-MOHAMED", "desc": "Port · Mohamed", "type": "sw", "icon": "auto", "qr": "Direct Ethernet connection for resident Mohamed's apartment." },
+      { "id": "rf16", "code": "SW-HOME-RADA", "desc": "Port · Rada", "type": "sw", "icon": "auto", "qr": "Direct Ethernet connection for resident Rada's apartment." },
+      { "id": "rf17", "code": "SW-HOME-UPLINK", "desc": "Ethernet Uplink · To Rack", "type": "sw", "icon": "eth", "qr": "Ethernet copper uplink connecting the home switch to the main rack." }
+    ]
+  }
+]
