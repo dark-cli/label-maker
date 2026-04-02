@@ -572,7 +572,15 @@ function saveData() {
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { appData = JSON.parse(raw); return; }
+    if (raw) {
+      appData = JSON.parse(raw);
+      // Merge in any missing settings from defaults (for backwards compatibility)
+      const defaults = DEFAULT_DATA.settings;
+      Object.keys(defaults).forEach(k => {
+        if (appData.settings[k] === undefined) appData.settings[k] = defaults[k];
+      });
+      return;
+    }
   } catch(e) {}
   appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
