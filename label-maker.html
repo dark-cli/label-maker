@@ -167,6 +167,22 @@ body {
 .type-cell { display: flex; align-items: center; gap: 5px; }
 .type-swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
+.check-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc; cursor: pointer; }
+.check-label input[type=checkbox] { width: 16px; height: 16px; accent-color: #c01010; cursor: pointer; }
+
+.search-input {
+  background: #242424; border: 1px solid #333; color: #bbb; border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  padding: 6px 10px; outline: none; width: 180px;
+}
+.search-input:focus { border-color: #555; color: #fff; }
+
+#lbl-pop .lbl-pop-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+#lbl-pop .lbl-pop-row:last-child { margin-bottom:0; }
+#lbl-pop .lbl-pop-row label { font-size:11px; color:#666; width:32px; flex-shrink:0; font-family:'Oswald',sans-serif; letter-spacing:0.05em; }
+#lbl-pop .lbl-pop-row input { flex:1; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:4px; color:#fff; font-size:13px; font-family:'Barlow Condensed',sans-serif; padding:6px 8px; outline:none; }
+#lbl-pop .lbl-pop-row input:focus { border-color:#555; }
+
 /* ═══════════ PREVIEW PANEL ═══════════ */
 #panel-preview { overflow: hidden; }
 
@@ -378,7 +394,10 @@ input[type=range]::-webkit-slider-thumb {
     <button class="btn btn-primary"   id="btn-add-group">+ Add Group</button>
     <button class="btn btn-secondary" id="btn-export">Export JSON</button>
     <button class="btn btn-secondary" id="btn-import">Import JSON</button>
+    <button class="btn btn-secondary" id="btn-import-csv">Import CSV</button>
     <input type="file" id="file-import" accept=".json" style="display:none">
+    <input type="file" id="file-csv" accept=".csv" style="display:none">
+    <input type="text" id="search-input" placeholder="Search labels..." class="search-input">
     <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
   </div>
 
@@ -486,6 +505,16 @@ input[type=range]::-webkit-slider-thumb {
         </div>
       </div>
 
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Visible Elements</div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-twoFace"> Two-Face Labels</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showBorder"> Color Border</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showWrap"> Wrap Zone</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showCode"> Code Text</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showDesc"> Description</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showQR"> QR Codes</label></div>
+      </div>
+
     </div>
     <div class="ctrl-bottom">
       <button class="btn-print" id="btn-print">&#128424; Print Labels</button>
@@ -511,7 +540,8 @@ const DEFAULT_DATA = {
     facewidth: 63, wrapwidth: 12, hdata: 15, barwidth: 3.5,
     codefont: 11.5, descfont: 8.5, padleft: 6.5,
     iconsize: 8, spacing: 8.5, opacity: 42, stripeOpacity: 44, qrSize: 12,
-    pagesize: 'A4', orient: 'landscape'
+    pagesize: 'A4', orient: 'landscape',
+    twoFace: true, showBorder: true, showWrap: true, showCode: true, showDesc: true, showQR: true
   },
   types: [
     { id: 'ac',  label: 'AC Power', color: '#e02020', icon: '󱐋' },
@@ -570,10 +600,10 @@ function renderLabels() {
   const s = appData.settings;
   let html = '';
 
-  appData.groups.forEach(group => {
+  appData.groups.forEach((group, gi) => {
     if (!group.labels?.length) return;
     html += `<div class="section-title">&#9646; ${esc(group.title)}</div><div class="label-row">`;
-    group.labels.forEach(label => {
+    group.labels.forEach((label, li) => {
       const type = appData.types.find(t => t.id === label.type) || appData.types[0];
       const icon = label.icon || type.icon;
       const iconAttr = icon === 'none' ? 'data-icon="none"' : `data-type-id="${type.id}"`;
@@ -581,7 +611,7 @@ function renderLabels() {
       let qrImg = '';
       if (label.qr && label.qr.trim()) {
         const qr = new QRious({ value: label.qr, size: s.qrSize * MM, level: 'M' });
-        qrImg = `<img src="${qr.toDataURL()}" style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;">`;
+        qrImg = `<img class="qr-img" src="${qr.toDataURL()}" data-qr-val="${esc(label.qr)}" style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;">`;
       }
 
       const face = `<div class="face-bg" ${iconAttr}></div>
@@ -595,7 +625,7 @@ function renderLabels() {
           </div>
         </div>`;
 
-      html += `<div class="label data cat-${type.id}">
+      html += `<div class="label data cat-${type.id}" data-gi="${gi}" data-li="${li}" style="cursor:pointer;">
         <div class="face">${face}</div>
         <div class="wrap-zone"><div class="wrap-bg" ${iconAttr}></div><span class="wrap-text">wrap</span></div>
         <div class="face2">${face}</div>
@@ -612,18 +642,111 @@ function renderLabels() {
   html += `</div>`;
 
   content.innerHTML = html;
+
+  // Wire up QR hover tooltips
+  content.querySelectorAll('.qr-img').forEach(img => {
+    img.addEventListener('mouseenter', () => showQRTip(img));
+    img.addEventListener('mouseleave', hideQRTip);
+  });
+
+  // Wire up label click-to-edit popover
+  content.querySelectorAll('.label.data').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openLabelPopover(parseInt(el.dataset.gi), parseInt(el.dataset.li), el);
+    });
+  });
+}
+
+// ─── QR Tooltip ───────────────────────────────────────────────────────────
+function showQRTip(img) {
+  let tip = g('qr-tip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'qr-tip';
+    document.body.appendChild(tip);
+  }
+  const val = img.dataset.qrVal;
+  const big = new QRious({ value: val || ' ', size: 200, level: 'M' });
+  const rect = img.getBoundingClientRect();
+  tip.innerHTML = `<img src="${big.toDataURL()}" style="width:160px;height:160px;display:block;border-radius:4px;">
+    <div style="font-size:11px;color:#aaa;word-break:break-all;max-width:160px;margin-top:6px;">${esc(val)}</div>`;
+  const tipW = 180, tipH = 210;
+  const top = rect.top - tipH - 8 < 0 ? rect.bottom + 8 : rect.top - tipH - 8;
+  const left = Math.min(rect.left, window.innerWidth - tipW - 8);
+  tip.style.cssText = `position:fixed;top:${top}px;left:${left}px;background:#1a1a1a;border:1px solid #333;
+    border-radius:8px;padding:10px;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.6);`;
+}
+
+function hideQRTip() {
+  const tip = g('qr-tip');
+  if (tip) tip.remove();
+}
+
+// ─── Label Popover Editor ─────────────────────────────────────────────────
+function openLabelPopover(gi, li, anchorEl) {
+  const existing = g('lbl-pop');
+  if (existing) existing.remove();
+
+  const label = appData.groups[gi].labels[li];
+  const rect = anchorEl.getBoundingClientRect();
+
+  const pop = document.createElement('div');
+  pop.id = 'lbl-pop';
+  pop.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;color:#fff;">✎ EDIT LABEL</span>
+      <button id="lbl-pop-close" style="background:none;border:none;color:#666;font-size:16px;cursor:pointer;padding:0 2px;">✕</button>
+    </div>
+    <div class="lbl-pop-row"><label>Code</label><input id="lp-code" value="${esc(label.code)}" placeholder="CODE"></div>
+    <div class="lbl-pop-row"><label>Desc</label><input id="lp-desc" value="${esc(label.desc)}" placeholder="Description"></div>
+    <div class="lbl-pop-row"><label>QR</label><input id="lp-qr" value="${esc(label.qr||'')}" placeholder="QR data"></div>
+  `;
+
+  const popH = 160;
+  const top = rect.bottom + 6 + popH > window.innerHeight
+    ? rect.top - popH - 6
+    : rect.bottom + 6;
+  const left = Math.min(rect.left, window.innerWidth - 270);
+
+  pop.style.cssText = `position:fixed;top:${top}px;left:${left}px;width:260px;
+    background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:14px;
+    z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,0.6);`;
+
+  document.body.appendChild(pop);
+
+  g('lbl-pop-close').onclick = () => pop.remove();
+  g('lp-code').oninput = e => {
+    label.code = e.target.value.toUpperCase();
+    e.target.value = label.code;
+    saveData(); renderLabels(); renderEditor();
+  };
+  g('lp-desc').oninput = e => { label.desc = e.target.value; saveData(); renderLabels(); renderEditor(); };
+  g('lp-qr').oninput = e => { label.qr = e.target.value; saveData(); renderLabels(); };
+
+  setTimeout(() => {
+    document.addEventListener('click', function closer(ev) {
+      if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('click', closer); }
+    });
+  }, 10);
 }
 
 // ─── Control Logic ────────────────────────────────────────────────────────
 function update() {
   const s = appData.settings;
-  // Sync sliders to data
-  document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel select').forEach(el => {
+  // Sync sliders, checkboxes, and selects to data
+  document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel input[type=checkbox], #ctrl-panel select').forEach(el => {
     const key = el.id.replace('sl-', '');
     if (s[key] !== undefined) {
-      s[key] = el.type === 'range' ? parseFloat(el.value) : el.value;
-      const vEl = g('v-' + key);
-      if (vEl) vEl.textContent = el.value + (el.id.includes('font') ? 'pt' : (el.id.includes('opacity') ? '%' : 'mm'));
+      if (el.type === 'checkbox') {
+        s[key] = el.checked;
+      } else if (el.type === 'range') {
+        s[key] = parseFloat(el.value);
+        const vEl = g('v-' + key);
+        if (vEl) vEl.textContent = el.value + (el.id.includes('font') ? 'pt' : (el.id.includes('opacity') ? '%' : 'mm'));
+      } else {
+        s[key] = el.value;
+      }
     }
   });
   saveData();
@@ -657,6 +780,27 @@ function update() {
   const stripeOpacity = s.stripeOpacity / 100;
   const stripeGrad = `repeating-linear-gradient(-45deg, rgba(0,0,0,${stripeOpacity}), rgba(0,0,0,${stripeOpacity}) 1.5mm, transparent 1.5mm, transparent 3mm)`;
 
+  // Add visibility toggles CSS
+  let visibilityCss = '';
+  if (!s.showBorder) {
+    visibilityCss += `.face { border-left: none !important; } .face2 { border-right: none !important; } .wrap-zone { border-left: none !important; border-right: none !important; }`;
+  }
+  if (!s.twoFace || !s.showWrap) {
+    visibilityCss += `.wrap-zone { display: none !important; }`;
+  }
+  if (!s.twoFace) {
+    visibilityCss += `.face2 { display: none !important; }`;
+  }
+  if (!s.showCode) {
+    visibilityCss += `.face-content .code { display: none !important; }`;
+  }
+  if (!s.showDesc) {
+    visibilityCss += `.face-content .desc { display: none !important; }`;
+  }
+  if (!s.showQR) {
+    visibilityCss += `.face-content .qr-img { display: none !important; }`;
+  }
+
   g('dyn-style').textContent = css + `
     .label.data { height: ${s.hdata}mm; }
     .face, .face2 { width: ${s.facewidth}mm; padding: 1mm ${s.padleft}mm; }
@@ -664,6 +808,7 @@ function update() {
     .face-content .code { font-size: ${s.codefont}pt; }
     .face-content .desc { font-size: ${s.descfont}pt; }
     [data-icon="none"] { background-image: none !important; }
+    ${visibilityCss}
   `;
   
   const pageSt = g('page-st') || document.createElement('style');
@@ -699,9 +844,10 @@ function renderEditor() {
     typesGrid.appendChild(div);
   });
 
-  // Groups/Labels
+  // Groups/Labels with search filtering
   const list = g('groups-list');
   list.innerHTML = '';
+  const searchTerm = g('search-input').value.trim().toLowerCase();
   appData.groups.forEach((group, gi) => {
     const card = document.createElement('div');
     card.className = 'group-card edit-section';
@@ -709,6 +855,7 @@ function renderEditor() {
       <div class="group-header edit-section-header">
         <input type="text" class="group-title-input" value="${esc(group.title)}" placeholder="Group Title">
         <button class="btn btn-secondary btn-add-label">+ Label</button>
+        <button class="btn-icon btn-dup-group">⎘</button>
         <button class="btn-icon btn-del-group">✕</button>
       </div>
       <table class="labels-table">
@@ -718,26 +865,39 @@ function renderEditor() {
     `;
     card.querySelector('.group-title-input').oninput = e => { group.title = e.target.value; saveData(); renderLabels(); };
     card.querySelector('.btn-add-label').onclick = () => { group.labels.push({code:'', desc:'', type:appData.types[0]?.id||'', qr:''}); renderEditor(); update(); };
+    card.querySelector('.btn-dup-group').onclick = () => { appData.groups.push(JSON.parse(JSON.stringify(group))); renderEditor(); update(); };
     card.querySelector('.btn-del-group').onclick = () => { appData.groups.splice(gi, 1); renderEditor(); update(); };
 
     const tbody = card.querySelector('tbody');
+    let visibleLabels = 0;
     group.labels.forEach((label, li) => {
+      // Check if label matches search term
+      if (searchTerm && !label.code.toLowerCase().includes(searchTerm) && !label.desc.toLowerCase().includes(searchTerm)) {
+        return; // Skip this label
+      }
+      visibleLabels++;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><input type="text" class="cell-input code" value="${esc(label.code)}" placeholder="CODE"></td>
         <td><input type="text" class="cell-input" value="${esc(label.desc)}" placeholder="Description"></td>
         <td><select class="cell-select">${appData.types.map(t => `<option value="${t.id}" ${label.type===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select></td>
         <td><input type="text" class="cell-input" value="${esc(label.qr)}" placeholder="QR Data"></td>
-        <td><button class="btn-icon">✕</button></td>
+        <td><button class="btn-icon btn-dup-label">⎘</button><button class="btn-icon btn-del-label">✕</button></td>
       `;
       const ins = tr.querySelectorAll('input, select');
       ins[0].oninput = e => { label.code = e.target.value.toUpperCase(); e.target.value = label.code; saveData(); renderLabels(); };
       ins[1].oninput = e => { label.desc = e.target.value; saveData(); renderLabels(); };
       ins[2].onchange = e => { label.type = e.target.value; saveData(); renderLabels(); update(); };
       ins[3].oninput = e => { label.qr = e.target.value; saveData(); renderLabels(); };
-      tr.querySelector('button').onclick = () => { group.labels.splice(li, 1); renderEditor(); update(); };
+      tr.querySelector('.btn-dup-label').onclick = () => { group.labels.splice(li+1, 0, JSON.parse(JSON.stringify(label))); renderEditor(); update(); };
+      tr.querySelector('.btn-del-label').onclick = () => { group.labels.splice(li, 1); renderEditor(); update(); };
       tbody.appendChild(tr);
     });
+
+    // Hide group if no labels match search
+    if (searchTerm && visibleLabels === 0) {
+      card.style.display = 'none';
+    }
     list.appendChild(card);
   });
 }
@@ -745,7 +905,12 @@ function renderEditor() {
 // ─── Actions ──────────────────────────────────────────────────────────────
 function syncSlidersToData() {
   const s = appData.settings;
-  Object.keys(s).forEach(k => { const el = g('sl-'+k); if (el) el.value = s[k]; });
+  Object.keys(s).forEach(k => {
+    const el = g('sl-'+k);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!s[k];
+    else el.value = s[k];
+  });
 }
 
 g('btn-add-group').onclick = () => { appData.groups.push({title:'New Group', labels:[]}); renderEditor(); };
@@ -768,11 +933,89 @@ g('file-import').onchange = e => {
   e.target.value = '';
 };
 
+// CSV import
+g('btn-import-csv').onclick = () => g('file-csv').click();
+g('file-csv').onchange = e => {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const lines = e.target.result.split('\n').filter(l => l.trim());
+      if (lines.length < 2) throw new Error('Empty CSV');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const codeIdx = headers.indexOf('code');
+      const descIdx = headers.indexOf('description');
+      const typeIdx = headers.indexOf('type');
+      const qrIdx = headers.indexOf('qr');
+      if (codeIdx === -1) throw new Error('CSV must have "code" column');
+
+      let group = appData.groups.find(g => g.title === 'CSV Import');
+      if (!group) {
+        group = {title: 'CSV Import', labels: []};
+        appData.groups.push(group);
+      }
+
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(',').map(p => p.trim());
+        if (!parts[codeIdx]) continue;
+        let typeId = appData.types[0]?.id || '';
+        if (typeIdx !== -1 && parts[typeIdx]) {
+          const found = appData.types.find(t => t.id.toLowerCase() === parts[typeIdx].toLowerCase() || t.label.toLowerCase() === parts[typeIdx].toLowerCase());
+          if (found) typeId = found.id;
+        }
+        group.labels.push({
+          code: parts[codeIdx].toUpperCase(),
+          desc: descIdx !== -1 ? parts[descIdx] : '',
+          type: typeId,
+          qr: qrIdx !== -1 ? parts[qrIdx] : ''
+        });
+      }
+      saveData(); renderEditor(); update();
+    } catch(err) { alert('CSV import failed: ' + err.message); }
+  };
+  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
+  e.target.value = '';
+};
+
+// Search input
+g('search-input').oninput = renderEditor;
+
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
   if (name === 'preview') update();
 }
+
+// ─── Keyboard Shortcuts ───────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'f') {
+      e.preventDefault();
+      g('search-input').focus();
+    } else if (e.key === 'n') {
+      e.preventDefault();
+      if (appData.groups.length === 0) appData.groups.push({title:'New Group', labels:[]});
+      appData.groups[appData.groups.length-1].labels.push({code:'', desc:'', type:appData.types[0]?.id||'', qr:''});
+      renderEditor(); update();
+    } else if (e.key === 'g') {
+      e.preventDefault();
+      appData.groups.push({title:'New Group', labels:[]});
+      renderEditor();
+    } else if (e.key === 'e') {
+      e.preventDefault();
+      switchTab('edit');
+    } else if (e.key === 'p' && !e.shiftKey) {
+      e.preventDefault();
+      switchTab('preview');
+    } else if (e.key === 'p' && e.shiftKey) {
+      e.preventDefault();
+      setTimeout(() => window.print(), 100);
+    }
+  } else if (e.key === 'Escape') {
+    const pop = g('lbl-pop');
+    if (pop) pop.remove();
+    hideQRTip();
+  }
+});
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 loadData();
