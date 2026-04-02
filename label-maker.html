@@ -186,8 +186,6 @@ body {
 .drag-over { outline: 2px solid #c01010 !important; }
 tr.drag-over { outline: 2px solid #c01010; }
 
-.qr-img { object-fit: cover; object-position: center; }
-
 /* ═══════════ PREVIEW PANEL ═══════════ */
 #panel-preview { overflow: hidden; }
 
@@ -624,8 +622,8 @@ function renderLabels() {
 
       let qrImg = '';
       if (label.qr && label.qr.trim()) {
-        const qr = new QRious({ value: label.qr, size: s.qrSize * MM * 1.1, level: 'M' });
-        qrImg = `<img class="qr-img" src="${qr.toDataURL()}" data-qr-val="${esc(label.qr)}" style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;object-fit:cover;">`;
+        const qr = new QRious({ value: label.qr, size: s.qrSize * MM * 1.25, level: 'M' });
+        qrImg = `<div style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;overflow:hidden;display:flex;align-items:center;justify-content:center;"><img class="qr-img" src="${qr.toDataURL()}" data-qr-val="${esc(label.qr)}" style="width:${s.qrSize * 1.25}mm;height:${s.qrSize * 1.25}mm;"></div>`;
       }
 
       const face = `<div class="face-bg" ${iconAttr}></div>
@@ -681,9 +679,9 @@ function showQRTip(img) {
     document.body.appendChild(tip);
   }
   const val = img.dataset.qrVal;
-  const big = new QRious({ value: val || ' ', size: 220, level: 'M' });
+  const big = new QRious({ value: val || ' ', size: 200, level: 'M' });
   const rect = img.getBoundingClientRect();
-  tip.innerHTML = `<img src="${big.toDataURL()}" style="width:160px;height:160px;display:block;border-radius:4px;object-fit:cover;">
+  tip.innerHTML = `<div style="width:160px;height:160px;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:4px;"><img src="${big.toDataURL()}" style="width:200px;height:200px;"></div>
     <div style="font-size:11px;color:#aaa;word-break:break-all;max-width:160px;margin-top:6px;">${esc(val)}</div>`;
   const tipW = 180, tipH = 210;
   const top = rect.top - tipH - 8 < 0 ? rect.bottom + 8 : rect.top - tipH - 8;
