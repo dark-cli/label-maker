@@ -797,7 +797,7 @@ function update() {
   if (!s.showBorder) {
     visibilityCss += `.face { border-left: none !important; } .face2 { border-right: none !important; } .wrap-zone { border-left: none !important; border-right: none !important; }`;
   }
-  if (!s.twoFace || !s.showWrap) {
+  if (!s.showWrap) {
     visibilityCss += `.wrap-zone { display: none !important; }`;
   }
   if (!s.twoFace) {
