@@ -4,9 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const GITHUB_USER = process.argv[2] || 'max';
+const GITHUB_USER = process.argv[2] || 'dark-cli';
 const GITHUB_REPO = process.argv[3] || 'label-maker';
-const GITHUB_BRANCH = process.argv[4] || 'main';
 const QR_FOLDER = './qr_codes';
 const JSON_FILE = './label-maker-data.json';
 
@@ -43,7 +42,7 @@ log(`✅ Created fresh ${QR_FOLDER}/`, 'green');
 
 // Step 3: Process each label
 let filesCreated = 0;
-const baseUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/qr_codes`;
+const shortUrlBase = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/qr?code`;
 
 data.groups.forEach((group) => {
   group.labels.forEach((label) => {
@@ -60,8 +59,8 @@ data.groups.forEach((group) => {
     const content = label.desc || label.code;
     fs.writeFileSync(filepath, content, 'utf8');
     
-    // Generate GitHub raw URL
-    const qrUrl = `${baseUrl}/${filename}`;
+    // Generate SHORT GitHub Pages URL
+    const qrUrl = `${shortUrlBase}=${label.code}`;
     label.qr = qrUrl;
     
     filesCreated++;
@@ -80,10 +79,12 @@ log(`✨ QR Generation Complete!`, 'green');
 log('='.repeat(60), 'yellow');
 log(`📁 QR Folder: ${QR_FOLDER}/`);
 log(`📄 Files Created: ${filesCreated}`);
-log(`🔗 Base URL: ${baseUrl}/`);
+log(`🔗 Short URL Base: https://${GITHUB_USER}.github.io/${GITHUB_REPO}/qr?code=`);
 log(`\n📋 Next Steps:`);
-log(`  1. Push qr_codes/ folder to GitHub`);
-log(`  2. Update GitHub_USER in script if needed: "${GITHUB_USER}"`);
-log(`  3. Update GITHUB_REPO in script if needed: "${GITHUB_REPO}"`);
-log(`  4. Reload Label Maker to see new QR URLs`);
-log(`\n💡 Usage: node generate-qr-urls.js [GITHUB_USER] [GITHUB_REPO] [BRANCH]`);
+log(`  1. Enable GitHub Pages in repo settings (Settings → Pages → Source: main/master)`);
+log(`  2. Push qr_codes/ folder and docs/ to GitHub`);
+log(`  3. Test: https://${GITHUB_USER}.github.io/${GITHUB_REPO}/qr?code=AC-CHG-IN`);
+log(`\n💡 Short URL Example:`);
+log(`  ${shortUrlBase}=AC-OUT-DIST-F`);
+log(`  ✅ Much shorter than the raw.githubusercontent URL!`);
+log(`\n💡 Usage: node generate-qr-urls.js [GITHUB_USER] [GITHUB_REPO]`);
