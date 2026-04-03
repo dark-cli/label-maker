@@ -143,112 +143,114 @@
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const app = document.getElementById('app');
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const app = document.getElementById('app');
 
-    if (!code) {
-      // Show info page if no code
-      app.innerHTML = `
-        <div class="header">
-          <div class="code-badge">🏷️ LABEL MAKER</div>
-          <p style="opacity: 0.9; margin: 0;">QR Code Information Service</p>
-        </div>
-        <div class="info-page">
-          <h1>Welcome!</h1>
-          <p>Scan a QR code or use a label code to view information.</p>
-          <div class="examples">
-            <p style="font-weight: 600; margin-bottom: 12px; color: #e0e0e0;">Example codes:</p>
-            <ul>
-              <li><a href="?code=AC-CHG-IN">AC-CHG-IN</a> - Power input</li>
-              <li><a href="?code=ETH-ROOM">ETH-ROOM</a> - Ethernet connection</li>
-              <li><a href="?code=HOME-SARA">HOME-SARA</a> - Network port</li>
-            </ul>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    // Validate code format
-    if (!/^[A-Za-z0-9\-_]+$/.test(code)) {
-      app.innerHTML = '<div class="error">❌ Invalid code format</div>';
-      return;
-    }
-
-    // Fetch the text file using jsdelivr CDN (better CORS support)
-    const fileUrl = `https://cdn.jsdelivr.net/gh/dark-cli/label-maker@master/qr_codes/${code}.txt`;
-
-    console.log('Fetching:', fileUrl);
-
-    // Create abort controller with 10 second timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    fetch(fileUrl, { signal: controller.signal })
-      .then(response => {
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          throw new Error(`Label "${code}" not found (${response.status})`);
-        }
-        return response.text();
-      })
-      .then(text => {
-        if (!text || text.trim().length === 0) {
-          throw new Error('Empty response');
-        }
-
-        // Parse English and Arabic sections
-        const sections = text.split('---').map(s => s.trim());
-        const english = sections[0] || 'N/A';
-        const arabic = sections[1] || 'N/A';
-
-        console.log('Success:', { code, english: english.substring(0, 30), arabic: arabic.substring(0, 30) });
-
-        // Render content
+      if (!code) {
+        // Show info page if no code
         app.innerHTML = `
           <div class="header">
-            <div class="code-badge">${code}</div>
+            <div class="code-badge">🏷️ LABEL MAKER</div>
+            <p style="opacity: 0.9; margin: 0;">QR Code Information Service</p>
           </div>
-          <div class="content">
-            <div class="section">
-              <div class="section-title">English</div>
-              <div class="section-text">${escapeHtml(english)}</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="section">
-              <div class="section-title">العربية</div>
-              <div class="section-text arabic">${escapeHtml(arabic)}</div>
+          <div class="info-page">
+            <h1>Welcome!</h1>
+            <p>Scan a QR code or use a label code to view information.</p>
+            <div class="examples">
+              <p style="font-weight: 600; margin-bottom: 12px; color: #e0e0e0;">Example codes:</p>
+              <ul>
+                <li><a href="?code=AC-CHG-IN">AC-CHG-IN</a> - Power input</li>
+                <li><a href="?code=ETH-ROOM">ETH-ROOM</a> - Ethernet connection</li>
+                <li><a href="?code=HOME-SARA">HOME-SARA</a> - Network port</li>
+              </ul>
             </div>
           </div>
         `;
-      })
-      .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('Fetch error:', error);
-        const errorMsg = error.name === 'AbortError' ? 'Request timeout - network issue' : error.message;
-        app.innerHTML = `
-          <div class="error">
-            ❌ ${escapeHtml(errorMsg)}<br>
-            <small style="opacity: 0.8;">URL: ${fileUrl}</small><br>
-            <small style="opacity: 0.8;">Check browser console (F12) for details</small>
-          </div>
-        `;
-      });
+        return;
+      }
 
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-    }
+      // Validate code format
+      if (!/^[A-Za-z0-9\-_]+$/.test(code)) {
+        app.innerHTML = '<div class="error">❌ Invalid code format</div>';
+        return;
+      }
+
+      // Fetch the text file using jsdelivr CDN (better CORS support)
+      const fileUrl = `https://cdn.jsdelivr.net/gh/dark-cli/label-maker@master/qr_codes/${code}.txt`;
+
+      console.log('Fetching:', fileUrl);
+
+      // Create abort controller with 10 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      fetch(fileUrl, { signal: controller.signal })
+        .then(response => {
+          clearTimeout(timeoutId);
+          if (!response.ok) {
+            throw new Error(`Label "${code}" not found (${response.status})`);
+          }
+          return response.text();
+        })
+        .then(text => {
+          if (!text || text.trim().length === 0) {
+            throw new Error('Empty response');
+          }
+
+          // Parse English and Arabic sections
+          const sections = text.split('---').map(s => s.trim());
+          const english = sections[0] || 'N/A';
+          const arabic = sections[1] || 'N/A';
+
+          console.log('Success:', { code, english: english.substring(0, 30), arabic: arabic.substring(0, 30) });
+
+          // Render content
+          app.innerHTML = `
+            <div class="header">
+              <div class="code-badge">${code}</div>
+            </div>
+            <div class="content">
+              <div class="section">
+                <div class="section-title">English</div>
+                <div class="section-text">${escapeHtml(english)}</div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="section">
+                <div class="section-title">العربية</div>
+                <div class="section-text arabic">${escapeHtml(arabic)}</div>
+              </div>
+            </div>
+          `;
+        })
+        .catch(error => {
+          clearTimeout(timeoutId);
+          console.error('Fetch error:', error);
+          const errorMsg = error.name === 'AbortError' ? 'Request timeout - network issue' : error.message;
+          app.innerHTML = `
+            <div class="error">
+              ❌ ${escapeHtml(errorMsg)}<br>
+              <small style="opacity: 0.8;">URL: ${fileUrl}</small><br>
+              <small style="opacity: 0.8;">Check browser console (F12) for details</small>
+            </div>
+          `;
+        });
+
+      // Escape HTML to prevent XSS
+      function escapeHtml(text) {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+      }
+    })();
   </script>
 </body>
 </html>
