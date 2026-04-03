@@ -9,7 +9,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -18,16 +18,16 @@
     }
 
     .container {
-      background: white;
+      background: #0f3460;
       border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       max-width: 500px;
       width: 100%;
       overflow: hidden;
     }
 
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #e94560 0%, #c01010 100%);
       color: white;
       padding: 30px 24px;
       text-align: center;
@@ -58,14 +58,14 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #667eea;
+      color: #e94560;
       margin-bottom: 12px;
     }
 
     .section-text {
       font-size: 16px;
       line-height: 1.6;
-      color: #333;
+      color: #e0e0e0;
       word-wrap: break-word;
     }
 
@@ -73,7 +73,7 @@
       direction: rtl;
       text-align: right;
       font-size: 15px;
-      color: #555;
+      color: #d0d0d0;
       line-height: 1.8;
     }
 
@@ -90,12 +90,13 @@
     }
 
     .error {
-      background: #fee;
-      color: #c33;
+      background: rgba(233, 69, 96, 0.2);
+      color: #ff6b7a;
       padding: 20px;
       border-radius: 8px;
       margin: 20px;
       text-align: center;
+      border: 1px solid #e94560;
     }
 
     .info-page {
@@ -105,12 +106,12 @@
 
     .info-page h1 {
       font-size: 24px;
-      color: #333;
+      color: #e0e0e0;
       margin-bottom: 12px;
     }
 
     .info-page p {
-      color: #666;
+      color: #b0b0b0;
       margin-bottom: 20px;
       line-height: 1.6;
     }
@@ -126,7 +127,7 @@
     }
 
     .examples a {
-      color: #667eea;
+      color: #ff6b7a;
       text-decoration: none;
       font-weight: 500;
     }
@@ -151,13 +152,13 @@
       app.innerHTML = `
         <div class="header">
           <div class="code-badge">🏷️ LABEL MAKER</div>
-          <p style="opacity: 0.9;">QR Code Information Service</p>
+          <p style="opacity: 0.9; margin: 0;">QR Code Information Service</p>
         </div>
         <div class="info-page">
           <h1>Welcome!</h1>
           <p>Scan a QR code or use a label code to view information.</p>
           <div class="examples">
-            <p style="font-weight: 600; margin-bottom: 12px;">Example codes:</p>
+            <p style="font-weight: 600; margin-bottom: 12px; color: #e0e0e0;">Example codes:</p>
             <ul>
               <li><a href="?code=AC-CHG-IN">AC-CHG-IN</a> - Power input</li>
               <li><a href="?code=ETH-ROOM">ETH-ROOM</a> - Ethernet connection</li>
@@ -175,15 +176,21 @@
       return;
     }
 
-    // Fetch the text file
-    const fileUrl = `https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/${code}.txt`;
+    // Fetch the text file using jsdelivr CDN (better CORS support)
+    const fileUrl = `https://cdn.jsdelivr.net/gh/dark-cli/label-maker@master/qr_codes/${code}.txt`;
 
     fetch(fileUrl)
       .then(response => {
-        if (!response.ok) throw new Error('Label not found');
+        if (!response.ok) {
+          throw new Error(`Label "${code}" not found`);
+        }
         return response.text();
       })
       .then(text => {
+        if (!text || text.trim().length === 0) {
+          throw new Error('Empty response');
+        }
+
         // Parse English and Arabic sections
         const sections = text.split('---').map(s => s.trim());
         const english = sections[0] || 'N/A';
@@ -210,7 +217,13 @@
         `;
       })
       .catch(error => {
-        app.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+        console.error('Fetch error:', error);
+        app.innerHTML = `
+          <div class="error">
+            ❌ ${escapeHtml(error.message)}<br>
+            <small style="opacity: 0.8;">Please check the label code and try again</small>
+          </div>
+        `;
       });
 
     // Escape HTML to prevent XSS
