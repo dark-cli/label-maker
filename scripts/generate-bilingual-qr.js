@@ -42,11 +42,11 @@ const arabicTranslations = {
 };
 
 // Read the data
-const data = JSON.parse(fs.readFileSync('label-maker-data.json', 'utf8'));
+const data = JSON.parse(fs.readFileSync('../data/label-maker-data.json', 'utf8'));
 
 // Create qr_codes directory if it doesn't exist
-if (!fs.existsSync('qr_codes')) {
-  fs.mkdirSync('qr_codes', { recursive: true });
+if (!fs.existsSync('../qr_codes')) {
+  fs.mkdirSync('../qr_codes', { recursive: true });
 }
 
 let count = 0;
@@ -54,7 +54,7 @@ let count = 0;
 // Generate bilingual QR text files
 data.groups.forEach((group) => {
   group.labels.forEach((label) => {
-    const filename = `qr_codes/${label.code}.txt`;
+    const filename = `../qr_codes/${label.code}.txt`;
     const englishDesc = label.desc;
     const arabicDesc = arabicTranslations[label.code] || englishDesc;
 

@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const old = JSON.parse(fs.readFileSync('label-maker-data.json', 'utf8'));
+const old = JSON.parse(fs.readFileSync('../data/label-maker-data.json', 'utf8'));
 
 // If it's already in the new format, skip
 if (old.groups) {
@@ -37,5 +37,5 @@ const newFormat = {
   }))
 };
 
-fs.writeFileSync('label-maker-data.json', JSON.stringify(newFormat, null, 2));
+fs.writeFileSync('../data/label-maker-data.json', JSON.stringify(newFormat, null, 2));
 console.log(`✅ Converted format: ${newFormat.groups.length} groups, ${newFormat.groups.reduce((sum, g) => sum + g.labels.length, 0)} labels`);

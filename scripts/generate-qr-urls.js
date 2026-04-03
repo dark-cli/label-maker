@@ -5,8 +5,8 @@ const path = require('path');
 
 const GITHUB_USER = process.argv[2] || 'dark-cli';
 const GITHUB_REPO = process.argv[3] || 'label-maker';
-const QR_FOLDER = './qr_codes';
-const JSON_FILE = './label-maker-data.json';
+const QR_FOLDER = '../qr_codes';
+const JSON_FILE = '../data/label-maker-data.json';
 
 const colors = {
   reset: '\x1b[0m',
