@@ -143,40 +143,46 @@
   </div>
 
   <script>
-    (function() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      const app = document.getElementById('app');
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const app = document.getElementById('app');
 
-      if (!code) {
-        // Show info page if no code
-        app.innerHTML = `
-          <div class="header">
-            <div class="code-badge">🏷️ LABEL MAKER</div>
-            <p style="opacity: 0.9; margin: 0;">QR Code Information Service</p>
-          </div>
-          <div class="info-page">
-            <h1>Welcome!</h1>
-            <p>Scan a QR code or use a label code to view information.</p>
-            <div class="examples">
-              <p style="font-weight: 600; margin-bottom: 12px; color: #e0e0e0;">Example codes:</p>
-              <ul>
-                <li><a href="?code=AC-CHG-IN">AC-CHG-IN</a> - Power input</li>
-                <li><a href="?code=ETH-ROOM">ETH-ROOM</a> - Ethernet connection</li>
-                <li><a href="?code=HOME-SARA">HOME-SARA</a> - Network port</li>
-              </ul>
-            </div>
-          </div>
-        `;
-        return;
-      }
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
 
+    if (!code) {
+      // Show info page if no code
+      app.innerHTML = `
+        <div class="header">
+          <div class="code-badge">🏷️ LABEL MAKER</div>
+          <p style="opacity: 0.9; margin: 0;">QR Code Information Service</p>
+        </div>
+        <div class="info-page">
+          <h1>Welcome!</h1>
+          <p>Scan a QR code or use a label code to view information.</p>
+          <div class="examples">
+            <p style="font-weight: 600; margin-bottom: 12px; color: #e0e0e0;">Example codes:</p>
+            <ul>
+              <li><a href="?code=AC-CHG-IN">AC-CHG-IN</a> - Power input</li>
+              <li><a href="?code=ETH-ROOM">ETH-ROOM</a> - Ethernet connection</li>
+              <li><a href="?code=HOME-SARA">HOME-SARA</a> - Network port</li>
+            </ul>
+          </div>
+        </div>
+      `;
+    } else if (!/^[A-Za-z0-9\-_]+$/.test(code)) {
       // Validate code format
-      if (!/^[A-Za-z0-9\-_]+$/.test(code)) {
-        app.innerHTML = '<div class="error">❌ Invalid code format</div>';
-        return;
-      }
-
+      app.innerHTML = '<div class="error">❌ Invalid code format</div>';
+    } else {
       // Fetch the text file using jsdelivr CDN (better CORS support)
       const fileUrl = `https://cdn.jsdelivr.net/gh/dark-cli/label-maker@master/qr_codes/${code}.txt`;
 
@@ -238,19 +244,7 @@
             </div>
           `;
         });
-
-      // Escape HTML to prevent XSS
-      function escapeHtml(text) {
-        const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-      }
-    })();
+    }
   </script>
 </body>
 </html>
