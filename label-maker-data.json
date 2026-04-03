@@ -38,19 +38,13 @@
       "id": "eth",
       "label": "Ethernet",
       "color": "#c061cb",
-      "icon": "󰈀"
+      "icon": "󰈁"
     },
     {
       "id": "fbr",
       "label": "Fiber",
       "color": "#2ec27e",
-      "icon": "󰌶"
-    },
-    {
-      "id": "sw",
-      "label": "Switch",
-      "color": "#7b3fc4",
-      "icon": "󰒢"
+      "icon": "󰓉"
     }
   ],
   "groups": [
