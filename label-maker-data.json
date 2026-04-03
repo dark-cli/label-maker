@@ -26,25 +26,31 @@
       "id": "ac",
       "label": "AC Power",
       "color": "#e02020",
-      "icon": "ó±"
+      "icon": "󱐋"
     },
     {
       "id": "dc",
       "label": "DC Power",
       "color": "#ff7800",
-      "icon": "ó±"
+      "icon": "󱐋"
     },
     {
       "id": "eth",
       "label": "Ethernet",
       "color": "#c061cb",
-      "icon": "ó°"
+      "icon": "󰈀"
     },
     {
       "id": "fbr",
       "label": "Fiber",
       "color": "#2ec27e",
-      "icon": "ó°"
+      "icon": "󰌶"
+    },
+    {
+      "id": "sw",
+      "label": "Switch",
+      "color": "#7b3fc4",
+      "icon": "󰒢"
     }
   ],
   "groups": [
