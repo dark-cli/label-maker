@@ -179,10 +179,17 @@
     // Fetch the text file using jsdelivr CDN (better CORS support)
     const fileUrl = `https://cdn.jsdelivr.net/gh/dark-cli/label-maker@master/qr_codes/${code}.txt`;
 
-    fetch(fileUrl)
+    console.log('Fetching:', fileUrl);
+
+    // Create abort controller with 10 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    fetch(fileUrl, { signal: controller.signal })
       .then(response => {
+        clearTimeout(timeoutId);
         if (!response.ok) {
-          throw new Error(`Label "${code}" not found`);
+          throw new Error(`Label "${code}" not found (${response.status})`);
         }
         return response.text();
       })
@@ -195,6 +202,8 @@
         const sections = text.split('---').map(s => s.trim());
         const english = sections[0] || 'N/A';
         const arabic = sections[1] || 'N/A';
+
+        console.log('Success:', { code, english: english.substring(0, 30), arabic: arabic.substring(0, 30) });
 
         // Render content
         app.innerHTML = `
@@ -217,11 +226,14 @@
         `;
       })
       .catch(error => {
+        clearTimeout(timeoutId);
         console.error('Fetch error:', error);
+        const errorMsg = error.name === 'AbortError' ? 'Request timeout - network issue' : error.message;
         app.innerHTML = `
           <div class="error">
-            ❌ ${escapeHtml(error.message)}<br>
-            <small style="opacity: 0.8;">Please check the label code and try again</small>
+            ❌ ${escapeHtml(errorMsg)}<br>
+            <small style="opacity: 0.8;">URL: ${fileUrl}</small><br>
+            <small style="opacity: 0.8;">Check browser console (F12) for details</small>
           </div>
         `;
       });
