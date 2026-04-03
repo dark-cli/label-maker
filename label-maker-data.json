@@ -61,31 +61,36 @@
           "code": "AC-01",
           "desc": "AC Power - 480V cable to UPS",
           "type": "ac",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-01.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-01.txt"
         },
         {
           "code": "AC-02",
           "desc": "AC Power - 240V backup line",
           "type": "ac",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-02.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-02.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-02.txt"
         },
         {
           "code": "DC-01",
           "desc": "DC Power - -48V distribution",
           "type": "dc",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/DC-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/DC-01.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/DC-01.txt"
         },
         {
           "code": "ETH-01",
           "desc": "Ethernet - Core network uplink",
           "type": "eth",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-01.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-01.txt"
         },
         {
           "code": "ETH-02",
           "desc": "Ethernet - Management VLAN",
           "type": "eth",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-02.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-02.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-02.txt"
         }
       ]
     },
@@ -96,19 +101,22 @@
           "code": "FBR-01",
           "desc": "Fiber - SAN connection A",
           "type": "fbr",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-01.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-01.txt"
         },
         {
           "code": "FBR-02",
           "desc": "Fiber - SAN connection B",
           "type": "fbr",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-02.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-02.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-02.txt"
         },
         {
           "code": "SW-01",
           "desc": "Switch - Distribution layer",
           "type": "sw",
-          "qr": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/SW-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SW-01.txt",
+          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/SW-01.txt"
         }
       ]
     }
