@@ -58,65 +58,247 @@
       "title": "Main Rack",
       "labels": [
         {
-          "code": "AC-01",
-          "desc": "AC Power - 480V cable to UPS",
+          "code": "AC-CHG-IN",
+          "desc": "Power In · Main to Inverter Charge",
           "type": "ac",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-01.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-CHG-IN.txt",
+          "qr_old": "Main grid power entering the rack to feed the inverter/charger unit."
         },
         {
-          "code": "AC-02",
-          "desc": "AC Power - 240V backup line",
+          "code": "AC-INV-OUT",
+          "desc": "Power Out · Inverter Output",
           "type": "ac",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-02.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/AC-02.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-INV-OUT.txt",
+          "qr_old": "Clean AC power output from the inverter, serving as the primary power source for the distribution system."
         },
         {
-          "code": "DC-01",
-          "desc": "DC Power - -48V distribution",
-          "type": "dc",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/DC-01.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/DC-01.txt"
+          "code": "AC-MAIN-BKUP",
+          "desc": "Power In · Main Backup Line",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-MAIN-BKUP.txt",
+          "qr_old": "Secondary AC power line from the main grid, used as a backup fallback for the system."
         },
         {
-          "code": "ETH-01",
-          "desc": "Ethernet - Core network uplink",
+          "code": "AC-OUT-RACK",
+          "desc": "Power Out · To Rack",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-RACK.txt",
+          "qr_old": "Power supply feeding the main network rack components and PDUs."
+        },
+        {
+          "code": "AC-OUT-ROOM",
+          "desc": "Power Out · To Room",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-ROOM.txt",
+          "qr_old": "Power supply feeding the electrical outlets in the Ali's room."
+        },
+        {
+          "code": "AC-OUT-DIST-ROOF",
+          "desc": "Power Out · To Roof Panel",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-DIST-ROOF.txt",
+          "qr_old": "AC power line running from the rack to the distribution panel on the roof."
+        },
+        {
+          "code": "AC-OUT-DIST-A",
+          "desc": "Power Out · To Dist. Switch A",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-DIST-A.txt",
+          "qr_old": "AC power supply for neighborhood distribution switch A. it's a box panel at the  top of the garden bathroom"
+        },
+        {
+          "code": "AC-OUT-DIST-B",
+          "desc": "Power Out · To Dist. Switch B",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-DIST-B.txt",
+          "qr_old": "AC power supply for neighborhood distribution switch B. It is on electricity pole infornt of Abo_Zineb house"
+        },
+        {
+          "code": "AC-OUT-DIST-F",
+          "desc": "Power Out · To Dist. Switch F. It is on electricity pole infornt Akeal House",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-DIST-F.txt",
+          "qr_old": "AC power supply for neighborhood distribution switch F."
+        },
+        {
+          "code": "ETH-ROOM",
+          "desc": "Ethernet · To Ali's Room",
           "type": "eth",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-01.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-ROOM.txt",
+          "qr_old": "Ethernet copper connection for Ali's room."
         },
         {
-          "code": "ETH-02",
-          "desc": "Ethernet - Management VLAN",
+          "code": "ETH-DIST-ROOF",
+          "desc": "Ethernet · To Roof Panel Main Switch",
           "type": "eth",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-02.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/ETH-02.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-DIST-ROOF.txt",
+          "qr_old": "Primary Ethernet uplink to the main distribution switch on the roof."
+        },
+        {
+          "code": "ETH-DIST-HOME",
+          "desc": "Ethernet · Home Switch",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-DIST-HOME.txt",
+          "qr_old": "Ethernet copper connection to Home second flower switch and router"
+        },
+        {
+          "code": "ETH-AHMED",
+          "desc": "Ethernet · To Ahmed Home",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-AHMED.txt",
+          "qr_old": "Direct Ethernet internet connection provided to Ahmed's 'Our neighbor' house."
+        },
+        {
+          "code": "FBR-DIST-ROOF",
+          "desc": "Fiber · To Roof Panel, Sector Switch",
+          "type": "fbr",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-DIST-ROOF.txt",
+          "qr_old": "Fiber optic uplink to the sector distribution switch on the roof."
+        },
+        {
+          "code": "FBR-DIST-A",
+          "desc": "Fiber · To Dist. Switch A",
+          "type": "fbr",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-DIST-A.txt",
+          "qr_old": "Fiber optic link to neighborhood distribution switch A. It is on top the garden bathroom."
+        },
+        {
+          "code": "FBR-DIST-B",
+          "desc": "Fiber · To Dist. Switch B",
+          "type": "fbr",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-DIST-B.txt",
+          "qr_old": "Fiber optic link to neighborhood distribution switch B. It is on electricity pole infornt Abo_Zineb hosue."
+        },
+        {
+          "code": "FBR-DIST-F",
+          "desc": "Fiber · To Dist. Switch F",
+          "type": "fbr",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-DIST-F.txt",
+          "qr_old": "Fiber optic link to neighborhood distribution switch F. It is on electricity pole infornt Akeal house."
+        },
+        {
+          "code": "FBR-ISP",
+          "desc": "Fiber · From ISP (Horizen)",
+          "type": "fbr",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-ISP.txt",
+          "qr_old": "Main fiber internet arrival from the ISP (Horizen)."
         }
       ]
     },
     {
-      "title": "Storage Array",
+      "title": "Roof Distribution Panel",
       "labels": [
         {
-          "code": "FBR-01",
-          "desc": "Fiber - SAN connection A",
-          "type": "fbr",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-01.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-01.txt"
+          "code": "AC-IN-RACK",
+          "desc": "Power In · From Rack",
+          "type": "ac",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-IN-RACK.txt",
+          "qr_old": "AC power input arriving from the main rack distribution line."
         },
         {
-          "code": "FBR-02",
-          "desc": "Fiber - SAN connection B",
-          "type": "fbr",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/FBR-02.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/FBR-02.txt"
+          "code": "DC24-OUT-POE",
+          "desc": "DC 24V · To PoE Panel",
+          "type": "dc",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/DC24-OUT-POE.txt",
+          "qr_old": "24V DC power output from the transformer to the PoE injection panel."
         },
         {
-          "code": "SW-01",
-          "desc": "Switch - Distribution layer",
+          "code": "ETH-SECTOR-H1",
+          "desc": "PoE Out · Sector H1",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H1.txt",
+          "qr_old": "PoE power and data for Wireless Sector Radio H1."
+        },
+        {
+          "code": "ETH-SECTOR-H2",
+          "desc": "PoE Out · Sector H2",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H2.txt",
+          "qr_old": "PoE power and data for Wireless Sector Radio H2."
+        },
+        {
+          "code": "ETH-SECTOR-H3",
+          "desc": "PoE Out · Sector H3",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H3.txt",
+          "qr_old": "PoE power and data for Wireless Sector Radio H3."
+        },
+        {
+          "code": "POE-SW-DIST-ROOF",
+          "desc": "PoE Out · Sectors Switch",
+          "type": "eth",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/POE-SW-DIST-ROOF.txt",
+          "qr_old": "PoE power supply for the Sector distribution switch."
+        },
+        {
+          "code": "SECT-H1",
+          "desc": "Port · Sector H1",
           "type": "sw",
-          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SW-01.txt",
-          "qr_old": "https://raw.githubusercontent.com/max/label-maker/main/qr_codes/SW-01.txt"
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SECT-H1.txt",
+          "qr_old": "Network port for Wireless Sector radio H1."
+        },
+        {
+          "code": "SECT-H2",
+          "desc": "Port · Sector H2",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SECT-H2.txt",
+          "qr_old": "Network port for Wireless Sector radio H2."
+        },
+        {
+          "code": "SECT-H3",
+          "desc": "Port · Sector H3",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SECT-H3.txt",
+          "qr_old": "Network port for Wireless Sector radio H3."
+        },
+        {
+          "code": "USER-0017",
+          "desc": "Port · User 0017",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/USER-0017.txt",
+          "qr_old": "Direct Ethernet connection for resident user 0017."
+        },
+        {
+          "code": "User-0020",
+          "desc": "Port · User 0020",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/User-0020.txt",
+          "qr_old": "Direct Ethernet connection for resident user 0020."
+        },
+        {
+          "code": "SW-SECT-UPLINK",
+          "desc": "Fiber Uplink · To Rack",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/SW-SECT-UPLINK.txt",
+          "qr_old": "Fiber optic uplink connecting the sector switch to the main rack."
+        },
+        {
+          "code": "HOME-SARA",
+          "desc": "Port · Sara",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/HOME-SARA.txt",
+          "qr_old": "Direct Ethernet connection for resident Sara's apartment."
+        },
+        {
+          "code": "HOME-MOHAMED",
+          "desc": "Port · Mohamed",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/HOME-MOHAMED.txt",
+          "qr_old": "Direct Ethernet connection for resident Mohamed's apartment."
+        },
+        {
+          "code": "HOME-RADA",
+          "desc": "Port · Rada",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/HOME-RADA.txt",
+          "qr_old": "Direct Ethernet connection for resident Rada's apartment."
+        },
+        {
+          "code": "HOME-UPLINK",
+          "desc": "Ethernet Uplink · To Rack",
+          "type": "sw",
+          "qr": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/HOME-UPLINK.txt",
+          "qr_old": "Ethernet copper uplink connecting the home switch to the main rack."
         }
       ]
     }
