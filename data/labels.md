@@ -15,10 +15,10 @@
 - opacity: 37
 
 ## Types
-- **ac**: AC Power | #e02020
-- **dc**: DC Power | #ff7800
-- **eth**: Ethernet | #c061cb
-- **fbr**: Fiber | #2ec27e
+- **ac**: AC Power | #e02020 | 󱐋
+- **dc**: DC Power | #ff7800 | 󱐋
+- **eth**: Ethernet | #c061cb | 󰈁
+- **fbr**: Fiber | #2ec27e | 󰓉
 
 ---
 

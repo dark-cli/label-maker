@@ -1006,7 +1006,7 @@ function appDataToMarkdown() {
 
   md += '\n## Types\n';
   appData.types.forEach(t => {
-    md += `- **${t.id}**: ${t.label} | ${t.color}\n`;
+    md += `- **${t.id}**: ${t.label} | ${t.color} | ${t.icon || '󰋙'}\n`;
   });
 
   md += '\n---\n';
@@ -1066,8 +1066,8 @@ function markdownToAppData(md) {
         code: trimmed.slice(4).trim(),
         desc: '',
         type: '',
-        qr: '',
-        details: ''
+        qr: ''
+        // Note: don't set icon, let it default to type.icon
       };
       if (currentGroup) {
         currentGroup.labels.push(currentLabel);
@@ -1096,13 +1096,13 @@ function markdownToAppData(md) {
 
     // Types section
     if (currentSection === 'types' && trimmed.startsWith('-') && trimmed.includes('**')) {
-      const match = trimmed.match(/^-\s*\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+)$/);
+      const match = trimmed.match(/^-\s*\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+?)\s*(?:\|\s*(.+))?$/);
       if (match) {
         data.types.push({
           id: match[1],
           label: match[2].trim(),
           color: match[3].trim(),
-          icon: '󰋙'
+          icon: (match[4] || '󰋙').trim()
         });
       }
       continue;
@@ -1118,7 +1118,7 @@ function markdownToAppData(md) {
         if (field === 'title') currentLabel.desc = value;
         else if (field === 'type') currentLabel.type = value;
         else if (field === 'qr') currentLabel.qr = value;
-        else if (field === 'details') currentLabel.details = value;
+        // Note: We skip 'details' field - it's just for reference in markdown
       }
     }
   }
