@@ -1027,59 +1027,108 @@ function appDataToMarkdown() {
 
 function markdownToAppData(md) {
   const data = { settings: {}, types: [], groups: [] };
-  const lines = md.split('\n').map(l => l.trim());
+  const lines = md.split('\n');
   let currentSection = null;
   let currentGroup = null;
   let currentLabel = null;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!line) continue;
+    const trimmed = line.trim();
 
-    if (line.startsWith('## ')) {
-      const title = line.slice(3);
-      if (title === 'Settings') currentSection = 'settings';
-      else if (title === 'Types') currentSection = 'types';
-      else {
+    // Skip empty lines
+    if (!trimmed) continue;
+
+    // Section headers
+    if (trimmed.startsWith('## ')) {
+      const title = trimmed.slice(3).trim();
+      if (title === 'Settings') {
+        currentSection = 'settings';
+      } else if (title === 'Types') {
+        currentSection = 'types';
+      } else {
         currentSection = 'groups';
         currentGroup = { title, labels: [] };
         data.groups.push(currentGroup);
       }
+      currentLabel = null;
       continue;
     }
 
-    if (currentSection === 'settings' && line.includes(':')) {
-      const [k, v] = line.split(':').map(s => s.trim());
-      if (k.startsWith('-')) {
-        const key = k.slice(1).trim();
-        const val = isNaN(v) ? (v === 'true' ? true : v === 'false' ? false : v) : parseFloat(v);
+    // Skip separator lines and table headers
+    if (trimmed.startsWith('---') || trimmed.includes('---') || trimmed === '| Field | Value |') {
+      continue;
+    }
+
+    // Label headers
+    if (trimmed.startsWith('### ')) {
+      currentLabel = {
+        code: trimmed.slice(4).trim(),
+        desc: '',
+        type: '',
+        qr: '',
+        details: ''
+      };
+      if (currentGroup) {
+        currentGroup.labels.push(currentLabel);
+      }
+      continue;
+    }
+
+    // Settings section
+    if (currentSection === 'settings' && trimmed.startsWith('-') && trimmed.includes(':')) {
+      const match = trimmed.match(/^-\s*(\w+):\s*(.+)$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2];
+        // Try to parse as number
+        if (!isNaN(val) && val !== '') {
+          val = parseFloat(val);
+        } else if (val === 'true') {
+          val = true;
+        } else if (val === 'false') {
+          val = false;
+        }
         data.settings[key] = val;
       }
+      continue;
     }
 
-    if (currentSection === 'types' && line.includes('**')) {
-      const match = line.match(/\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+)/);
+    // Types section
+    if (currentSection === 'types' && trimmed.startsWith('-') && trimmed.includes('**')) {
+      const match = trimmed.match(/^-\s*\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+)$/);
       if (match) {
-        data.types.push({ id: match[1], label: match[2], color: match[3].trim(), icon: '󰋙' });
+        data.types.push({
+          id: match[1],
+          label: match[2].trim(),
+          color: match[3].trim(),
+          icon: '󰋙'
+        });
       }
+      continue;
     }
 
-    if (currentSection === 'groups' && line.startsWith('### ')) {
-      currentLabel = { code: line.slice(4), desc: '', type: '', qr: '', details: '' };
-      currentGroup.labels.push(currentLabel);
-    }
+    // Table rows in labels
+    if (currentLabel && trimmed.startsWith('|') && !trimmed.startsWith('| Field')) {
+      const cells = trimmed.split('|').map(c => c.trim()).filter(c => c);
+      if (cells.length >= 2) {
+        const field = cells[0].toLowerCase().replace(/\*\*/g, '');
+        const value = cells.slice(1).join('|').trim();
 
-    if (currentLabel && line.includes('|') && !line.includes('---')) {
-      const parts = line.split('|').map(p => p.trim());
-      if (parts.length >= 3) {
-        const field = parts[1]?.toLowerCase();
-        const value = parts[2];
-        if (field === '**title**') currentLabel.desc = value;
-        else if (field === '**type**') currentLabel.type = value;
-        else if (field === '**qr**') currentLabel.qr = value;
-        else if (field === '**details**') currentLabel.details = value;
+        if (field === 'title') currentLabel.desc = value;
+        else if (field === 'type') currentLabel.type = value;
+        else if (field === 'qr') currentLabel.qr = value;
+        else if (field === 'details') currentLabel.details = value;
       }
     }
+  }
+
+  // Validate data
+  if (!data.types || data.types.length === 0) {
+    throw new Error('No types found in Markdown file');
+  }
+  if (!data.groups || data.groups.length === 0) {
+    throw new Error('No groups found in Markdown file');
   }
 
   return data;
@@ -1100,14 +1149,22 @@ g('file-import-md').onchange = e => {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = markdownToAppData(e.target.result);
-      if (!data.groups) throw new Error('Invalid Markdown format');
+      const md = e.target.result;
+      console.log('Markdown content length:', md.length);
+      const data = markdownToAppData(md);
+      console.log('Parsed data:', data);
+      if (!data.groups || data.groups.length === 0) throw new Error('No groups found');
+      if (!data.types || data.types.length === 0) throw new Error('No types found');
       appData = data;
       saveData();
       syncSlidersToData();
       renderEditor();
       update();
-    } catch(err) { alert('Markdown import failed: ' + err.message); }
+      alert('Markdown imported successfully! Groups: ' + data.groups.length + ', Types: ' + data.types.length);
+    } catch(err) {
+      console.error('Markdown import error:', err);
+      alert('Markdown import failed: ' + err.message);
+    }
   };
   if (e.target.files[0]) reader.readAsText(e.target.files[0]);
   e.target.value = '';
