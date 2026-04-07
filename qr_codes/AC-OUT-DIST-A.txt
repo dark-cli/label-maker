@@ -1,5 +1,5 @@
-Power Out · To Dist. Switch A
+AC Power Output · Distribution Switch A
 
 ---
 
-الخط الخارج إلى الكابينةA هذ الكابينة موجودة فوق حمام كراج البيت
+خط الكهرباء الموزع إلى خزانة التوزيع (Cabinet) A، الموجودة فوق حمام المرآب بالمنزل

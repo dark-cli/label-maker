@@ -1,5 +1,5 @@
-Power In · From Rack
+AC Power Input · From Roof Panel to Rack
 
 ---
 
-هذ خط الذي يغذي مقابس كهرباء في ال Rack.خارج من الريلية الى سيار كهرباء الالراك
+خط الكهرباء من لوح التوزيع على السطح الذي يغذي منظم الطاقة الرئيسي (Distribution Panel) في الرف

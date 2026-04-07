@@ -1,5 +1,5 @@
-PoE Out · Sectors Switch
+PoE Output · Roof Sector Switch
 
 ---
 
-كايبل يحمل PoE لتشغيل سويج السطح الذي يغذي السكاتر
+كابل Power over Ethernet (PoE) الذي يغذي مفتاح الشبكة (Switch) الموجود على السطح والمتصل بأجهزة القطاعات (Sectors)

@@ -1,6 +1,6 @@
-Ethernet Uplink · To Rack
+Ethernet Uplink · Main Switch to Home Router
 
 ---
 
-كيبل الايثر من المتجه من السويج الرائيس على راوتر المنزل مايكروتك 3011
-من اثير1 في السويج الى ايثر 5 في 3011 الي هو راوتر المنزل
+كابل Ethernet الذي يربط مفتاح الشبكة (Switch) الرئيسي بجهاز الراوتر (Router) المنزلي Mikrotik 3011
+من Port 1 في Switch الرئيسي إلى Port 5 في جهاز Mikrotik 3011

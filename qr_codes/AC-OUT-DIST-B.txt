@@ -1,5 +1,5 @@
-Power Out · To Dist. Switch B
+AC Power Output · Distribution Switch B
 
 ---
 
-الخط الخارج إلى الكابينة B  هذ الكابينة موجودة امام بيت ابو زين  
+خط الكهرباء الموزع إلى خزانة التوزيع (Cabinet) B، الموجودة أمام منزل أبو زين  

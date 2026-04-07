@@ -1,5 +1,5 @@
-Power Out · To Roof Panel
+AC Power Output · Roof Distribution Panel
 
 ---
 
-هذ خط الكهرباء الكابية التي على سطح المنزل
+خط الكهرباء الموزع إلى لوح التوزيع الرئيسي (Main Panel) الموجود على سطح المنزل

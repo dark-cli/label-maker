@@ -1,5 +1,5 @@
-DC 24V · To PoE Panel
+DC 24V Output · To PoE Distribution Panel
 
 ---
 
-خط 24 فولط بخذي لوح توزيع ال POE الذي يستعمل لتشغيل sectors
+خط الكهرباء 24 فولط (DC) الذي يغذي لوح توزيع PoE المستخدم لتشغيل أجهزة القطاعات (Sectors)

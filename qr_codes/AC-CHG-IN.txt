@@ -1,6 +1,6 @@
-Power In · Main to Inverter Charge
+AC Power Input · Main to Inverter
 
 ---
 
-هذ اخط الرائيس AC الذي يغذي العاكس, من كهرباء البيت الى مجخل العاكس
+خط الكهرباء الرئيسي من المنزل الذي يغذي جهاز العاكس (Inverter)
 
