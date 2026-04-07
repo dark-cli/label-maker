@@ -395,14 +395,9 @@ input[type=range]::-webkit-slider-thumb {
 <div id="panel-edit" class="panel active">
   <div id="edit-toolbar">
     <button class="btn btn-primary"   id="btn-add-group">+ Add Group</button>
-    <button class="btn btn-secondary" id="btn-export">Export JSON</button>
     <button class="btn btn-secondary" id="btn-export-md">Export Markdown</button>
-    <button class="btn btn-secondary" id="btn-import">Import JSON</button>
     <button class="btn btn-secondary" id="btn-import-md">Import Markdown</button>
-    <button class="btn btn-secondary" id="btn-import-csv">Import CSV</button>
-    <input type="file" id="file-import" accept=".json" style="display:none">
     <input type="file" id="file-import-md" accept=".md" style="display:none">
-    <input type="file" id="file-csv" accept=".csv" style="display:none">
     <input type="text" id="search-input" placeholder="Search labels..." class="search-input">
     <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
   </div>
@@ -556,11 +551,7 @@ const DEFAULT_DATA = {
     { id: 'fbr', label: 'Fiber',    color: '#b89000', icon: '󰔖' },
     { id: 'sw',  label: 'Switch',   color: '#7b3fc4', icon: '󰒄' }
   ],
-  groups: [
-    { title: 'Main Rack', labels: [
-      { code: 'AC-CHG-IN', desc: 'Power In · Main to Inverter Charge', type: 'ac', qr: 'Grid input to charger.' }
-    ]}
-  ]
+  groups: []
 };
 
 // ─── State ────────────────────────────────────────────────────────────────
@@ -979,23 +970,6 @@ function syncSlidersToData() {
 
 g('btn-add-group').onclick = () => { appData.groups.push({title:'New Group', labels:[]}); renderEditor(); };
 g('btn-add-type').onclick = () => { appData.types.push({id:'t'+Date.now(), label:'New Type', color:'#888', icon:'󰋙'}); renderEditor(); };
-g('btn-export').onclick = () => {
-  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'label-maker-data.json'; a.click();
-};
-g('btn-import').onclick = () => g('file-import').click();
-g('file-import').onchange = e => {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.groups || !data.types) throw new Error('Invalid format');
-      appData = data; syncSlidersToData(); renderEditor(); update();
-    } catch(err) { alert('Import failed: ' + err.message); }
-  };
-  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
-  e.target.value = '';
-};
 
 // ─── Markdown export/import ───────────────────────────────────────────────
 function appDataToMarkdown() {
@@ -1165,49 +1139,6 @@ g('file-import-md').onchange = e => {
       console.error('Markdown import error:', err);
       alert('Markdown import failed: ' + err.message);
     }
-  };
-  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
-  e.target.value = '';
-};
-
-// CSV import
-g('btn-import-csv').onclick = () => g('file-csv').click();
-g('file-csv').onchange = e => {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const lines = e.target.result.split('\n').filter(l => l.trim());
-      if (lines.length < 2) throw new Error('Empty CSV');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const codeIdx = headers.indexOf('code');
-      const descIdx = headers.indexOf('description');
-      const typeIdx = headers.indexOf('type');
-      const qrIdx = headers.indexOf('qr');
-      if (codeIdx === -1) throw new Error('CSV must have "code" column');
-
-      let group = appData.groups.find(g => g.title === 'CSV Import');
-      if (!group) {
-        group = {title: 'CSV Import', labels: []};
-        appData.groups.push(group);
-      }
-
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(',').map(p => p.trim());
-        if (!parts[codeIdx]) continue;
-        let typeId = appData.types[0]?.id || '';
-        if (typeIdx !== -1 && parts[typeIdx]) {
-          const found = appData.types.find(t => t.id.toLowerCase() === parts[typeIdx].toLowerCase() || t.label.toLowerCase() === parts[typeIdx].toLowerCase());
-          if (found) typeId = found.id;
-        }
-        group.labels.push({
-          code: parts[codeIdx].toUpperCase(),
-          desc: descIdx !== -1 ? parts[descIdx] : '',
-          type: typeId,
-          qr: qrIdx !== -1 ? parts[qrIdx] : ''
-        });
-      }
-      saveData(); renderEditor(); update();
-    } catch(err) { alert('CSV import failed: ' + err.message); }
   };
   if (e.target.files[0]) reader.readAsText(e.target.files[0]);
   e.target.value = '';
