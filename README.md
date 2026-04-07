@@ -2,7 +2,13 @@
 
 A fully-featured web application for creating, managing, and printing professional cable and equipment labels with QR codes. All data is stored locally in your browser and synced to GitHub for backup and short URL generation.
 
-**Live Demo:** https://github.com/dark-cli/label-maker
+## 🚀 Quick Links
+
+| Link | Purpose |
+|------|---------|
+| **[Open Label Maker →](https://dark-cli.github.io/label-maker/label-maker.html)** | Create and manage your labels in the browser |
+| **[View QR Landing Page →](https://dark-cli.github.io/label-maker/?code=AC-CHG-IN)** | See what users see when they scan a QR code |
+| **[GitHub Repository](https://github.com/dark-cli/label-maker)** | Source code and data files |
 
 ---
 
@@ -87,24 +93,117 @@ Hide/show any element on all labels:
 
 ## 🚀 Getting Started
 
-### 1. Open the App
-```bash
-firefox label-maker.html
-```
-Or open `label-maker.html` in any modern browser (Chrome, Firefox, Safari, Edge).
+### Option A: Use the Official Instance (Recommended for Most Users)
 
-### 2. Create Your First Label
+Simply visit **[https://dark-cli.github.io/label-maker/label-maker.html](https://dark-cli.github.io/label-maker/label-maker.html)** in your browser and start creating labels. No installation needed!
+
+All your data is saved locally in your browser. When you're ready to generate working QR codes, follow the **Create Your Own Fork** section below.
+
+### Option B: Run Locally
+```bash
+git clone https://github.com/dark-cli/label-maker.git
+cd label-maker
+firefox src/label-maker.html
+```
+Or open `src/label-maker.html` in any modern browser (Chrome, Firefox, Safari, Edge).
+
+---
+
+## 📌 Create Your Own Fork with Working QR Codes
+
+Want to use the QR code system with your own labels? Here's how to set up your own GitHub-hosted instance in 5 minutes:
+
+### Step 1: Fork the Repository
+1. Go to [https://github.com/dark-cli/label-maker](https://github.com/dark-cli/label-maker)
+2. Click the **Fork** button in the top-right corner
+3. Choose your GitHub username as the owner (e.g., `your-username/label-maker`)
+4. Click **Create fork**
+
+### Step 2: Enable GitHub Pages
+1. Go to your forked repo: `https://github.com/your-username/label-maker`
+2. Click **Settings** (top-right)
+3. Scroll to **Pages** (left sidebar)
+4. Under "Source", select **Deploy from a branch**
+5. Select branch: **master**, folder: **root** (or **docs** if you only want the landing page)
+6. Click **Save**
+7. Wait ~1 minute for GitHub to deploy
+8. Your app will be available at: `https://your-username.github.io/label-maker/label-maker.html`
+
+### Step 3: Create Your Labels
+1. Open your app: `https://your-username.github.io/label-maker/label-maker.html`
+2. Create labels in the **Edit Labels** tab
+3. Customize dimensions, fonts, and colors in the **Preview & Print** tab
+4. Click **Export Markdown** to save your label data
+
+### Step 4: Update Your Repository with Label Data
+1. Open the **Markdown** file you exported (should look like the `data/labels.md` structure)
+2. Go to your GitHub repo: `https://github.com/your-username/label-maker`
+3. Click **Add file** → **Upload files**
+4. Drag and drop your markdown file (or navigate to `data/labels.md` if updating)
+5. Add a commit message: `"Update labels"` 
+6. Click **Commit changes**
+
+### Step 5: Generate QR Codes
+Once your labels are in `data/labels.md`, the QR codes are automatically ready! 
+
+When a user scans a QR code or clicks the link, they'll see:
+- **URL:** `https://your-username.github.io/label-maker/?code=YOUR-CODE`
+- **Landing page:** Shows the label title and Arabic description with right-to-left support
+- **Theme:** Automatically matches their system's light/dark mode preference
+
+### Example: Your First Label's QR Link
+If your label code is `AC-CHG-IN`, the QR code will point to:
+```
+https://your-username.github.io/label-maker/?code=AC-CHG-IN
+```
+
+Scan it or visit that URL to see the label information.
+
+---
+
+## 🔄 Updating Your Labels
+
+### Method 1: Use the Web App (Easiest)
+1. Open your app: `https://your-username.github.io/label-maker/label-maker.html`
+2. Make changes in the **Edit Labels** tab
+3. Click **Export Markdown**
+4. Upload the updated file to your GitHub repo (Settings → Upload files)
+5. Done! QR codes are live
+
+### Method 2: Edit on GitHub Directly
+1. Go to `https://github.com/your-username/label-maker/blob/master/data/labels.md`
+2. Click the **✏️ Edit** button
+3. Make changes to the markdown (add/edit labels)
+4. Click **Commit changes**
+5. Done! Changes are live in ~30 seconds
+
+### Method 3: Git Command Line (Advanced)
+```bash
+git clone https://github.com/your-username/label-maker.git
+cd label-maker
+
+# Edit data/labels.md with your labels
+nano data/labels.md
+
+# Push to GitHub
+git add data/labels.md
+git commit -m "Update labels"
+git push origin master
+```
+
+---
+
+### 1. Create Your First Label
 1. Switch to **Edit Labels** tab
 2. Click **+ Add Group** to create a group
-3. Click **+ Label** to add a label to the group
-4. Fill in:
+3. In the group, enter label details:
    - **Code**: Short identifier (e.g., `AC-01`)
    - **Description**: Full text (e.g., `AC Power - 480V input`)
    - **Type**: Select cable/equipment type
-   - **QR**: Leave empty (will be filled by script)
-5. Changes auto-save to browser storage
+   - **QR URL**: Will be auto-generated (leave as-is initially)
+4. Changes auto-save to browser storage
 
-### 3. Customize Labels
+### 2. Customize Label Appearance
 In **Preview & Print** tab, adjust:
 - **Label Dimensions**: Width, height, wrap zone, color bar thickness
 - **Text & Padding**: Font sizes, padding
@@ -113,99 +212,132 @@ In **Preview & Print** tab, adjust:
 - **Page Setup**: Paper size, orientation
 - **Visible Elements**: Toggle what appears on labels
 
-### 4. Generate QR Codes
-Once you have labels and are ready to use short QR URLs:
-
-```bash
-# Generate QR files and update JSON
-node generate-qr-urls.js dark-cli label-maker
-```
-
-This will:
-- Read your `label-maker-data.json`
-- Create text files in `qr_codes/` (one per label)
-- Update JSON with GitHub Pages short URLs
-- Preserve old URLs in `qr_old` field
-
-### 5. Push to GitHub
-```bash
-git add .
-git commit -m "Update labels"
-git push
-```
-
-The QR codes are now live and working!
-
 ---
 
 ## 📝 Managing Label Data
 
-### Export Labels
-1. Click **Export JSON** in Edit Labels toolbar
-2. Save `label-maker-data.json` to your computer
-3. Commit to git: `git add label-maker-data.json && git commit -m "Backup labels"`
+### Export Labels (Backup Your Work)
+1. Click **Export Markdown** in Edit Labels toolbar
+2. Save the file to your computer (this is your backup)
+3. When you're ready, upload it to your GitHub repo
 
 ### Import Labels
-1. Click **Import JSON**
-2. Select your saved `label-maker-data.json`
-3. Labels load into the app
+1. Click **Import Markdown**
+2. Select a markdown file with your labels
+3. Labels load into the app instantly
 
-### Import from CSV
-1. Create CSV file with columns: `code,description,type,qr`
-2. Click **Import CSV**
-3. Labels are added to "CSV Import" group
+### Label Markdown Format
+Labels are stored as markdown for easy editing:
 
-Example CSV:
+```markdown
+# Label Maker Database
+
+## Settings
+- pagesize: A4
+- orient: landscape
+- facewidth: 58
+- showCode: true
+
+## Types
+- **ac**: AC Power | #e02020 | 󱐋
+- **eth**: Ethernet | #1a6fd4 | 󰈁
+
+## Main Rack
+
+### AC-CHG-IN
+| Field | Value |
+|-------|-------|
+| **Title** | AC Power Input · Main to Inverter |
+| **Type** | ac |
+| **QR** | https://your-username.github.io/label-maker/?code=AC-CHG-IN |
+| **Details** | خط الكهرباء الرئيسي من المنزل الذي يغذي جهاز العاكس |
 ```
-code,description,type,qr
-AC-01,AC Power - Main,ac,
-ETH-01,Ethernet - Room 1,eth,
-FBR-01,Fiber - Backbone,fbr,
-```
-
-### Bulk Update
-1. Edit `label-maker-data.json` in a text editor
-2. Run: `node generate-qr-urls.js dark-cli label-maker`
-3. Commit and push
 
 ---
 
 ## 🔗 QR Code System
 
 ### How It Works
-1. **Short URL** — QR code encodes: `https://dark-cli.github.io/label-maker/?code=AC-01`
-2. **GitHub Pages** — Short URL redirects via `docs/index.html`
-3. **Raw Text** — Automatically redirects to: `https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-01.txt`
-4. **Content** — User sees the label description
+1. **Short URL** — QR code encodes: `https://your-username.github.io/label-maker/?code=YOUR-CODE`
+2. **GitHub Pages** — Serves the landing page at `docs/index.html`
+3. **Fetch Data** — Uses GitHub's CDN to fetch label descriptions from `data/labels.md`
+4. **Display** — Shows the label title (English) and description (Arabic with right-to-left support)
 
-### URL Length Comparison
-- **Old (Long):** `https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-OUT-DIST-F.txt` (113 chars)
-- **New (Short):** `https://dark-cli.github.io/label-maker/?code=AC-OUT-DIST-F` (61 chars) ✅ 46% shorter!
+### URL Format
+```
+https://your-username.github.io/label-maker/?code=AC-CHG-IN
+```
+
+- Replace `your-username` with your GitHub username
+- Replace `AC-CHG-IN` with any label code from your `data/labels.md`
 
 ### Adding New Labels
-Just follow the workflow:
-1. Add label to `label-maker-data.json`
-2. Run: `node generate-qr-urls.js dark-cli label-maker`
-3. Commit and push
-4. QR code is ready to use!
+It's instant! Just:
+1. Add the label to your `data/labels.md` file
+2. Commit and push to GitHub
+3. The QR code is immediately live
+4. No build step, no scripts to run
+
+Users scanning the QR code will automatically see the new label's information!
 
 ---
 
-## 📋 Data Format
+## 📁 File Structure
 
-### Label Structure
-```json
-{
-  "code": "AC-01",
-  "desc": "AC Power - 480V input",
-  "type": "ac",
-  "qr": "https://dark-cli.github.io/label-maker/?code=AC-01",
-  "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/AC-01.txt"
-}
+| File/Folder | Purpose |
+|------------|---------|
+| `src/label-maker.html` | Main application (open in browser) |
+| `docs/label-maker.html` | Copy of app for GitHub Pages hosting |
+| `docs/index.html` | QR code landing page (shows label info) |
+| `data/labels.md` | Your label data in markdown format |
+| `qr_codes/` | (Legacy) Text files for each label |
+
+### Markdown Data Format
+
+Your `data/labels.md` file structure:
+
+```markdown
+# Label Maker Database
+
+## Settings
+- pagesize: A4
+- orient: landscape
+- facewidth: 58
+- wrapwidth: 22
+- hdata: 17.5
+- barwidth: 2
+- codefont: 11.5
+- descfont: 8
+- padleft: 2.5
+- iconsize: 4.5
+- spacing: 1.5
+- opacity: 37
+- showCode: true
+- showDesc: true
+- showBorder: true
+
+## Types
+- **ac**: AC Power | #e02020 | 󱐋
+- **dc**: DC Power | #ff7800 | 󱐋
+- **eth**: Ethernet | #c061cb | 󰈁
+- **fbr**: Fiber | #2ec27e | 󰓉
+
+## Main Rack
+
+### AC-CHG-IN
+| Field | Value |
+|-------|-------|
+| **Title** | AC Power Input · Main to Inverter |
+| **Type** | ac |
+| **QR** | https://your-username.github.io/label-maker/?code=AC-CHG-IN |
+| **Details** | خط الكهرباء الرئيسي من المنزل الذي يغذي جهاز العاكس |
 ```
 
-### Settings
-All display settings are stored in `label-maker-data.json`.
+**Key fields:**
+- **Title**: What users see on the landing page (shown in header)
+- **Type**: The label category (ac, dc, eth, fbr, or custom)
+- **QR**: The full URL to the label (auto-generated)
+- **Details**: The Arabic description (shown with RTL support)
 
 ---
 
@@ -220,14 +352,37 @@ All display settings are stored in `label-maker-data.json`.
 
 ---
 
-## 📞 Support
+## ❓ FAQ
 
-For issues or questions:
-1. Check the troubleshooting section in the app
-2. Review your `label-maker-data.json` for format issues
-3. Verify GitHub Pages is enabled
-4. Check that git push succeeded
+### Q: Do I need to know how to code?
+**A:** No! The web app handles everything. Just type your labels, export as markdown, and upload to GitHub.
+
+### Q: How do I know if GitHub Pages is working?
+**A:** Visit `https://your-username.github.io/label-maker/label-maker.html`. If the app loads, GitHub Pages is working.
+
+### Q: Can I use this for non-cable labels?
+**A:** Absolutely! You can create any custom types (Servers, Rooms, Devices, etc.) and colors.
+
+### Q: How do I add RTL text (Arabic)?
+**A:** The Details field in your markdown automatically renders right-to-left. Just type or paste Arabic text.
+
+### Q: Will my QR codes break if I delete a label?
+**A:** Only that specific code will stop working. Other labels remain unaffected.
+
+### Q: Can I print the labels?
+**A:** Yes! The Preview & Print tab lets you adjust dimensions and print directly from the browser.
+
+### Q: How do I back up my labels?
+**A:** Click **Export Markdown** in the app and save the file. Git also keeps a history on GitHub.
 
 ---
 
-**Created with ❤️ for network infrastructure management**
+## 🤝 Contributing
+
+Found a bug or have a feature request? 
+- Open an issue: [dark-cli/label-maker/issues](https://github.com/dark-cli/label-maker/issues)
+- Fork and submit a pull request: [dark-cli/label-maker/pulls](https://github.com/dark-cli/label-maker/pulls)
+
+---
+
+**Created with ❤️ for network infrastructure management and team collaboration**
