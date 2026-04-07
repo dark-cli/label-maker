@@ -396,9 +396,12 @@ input[type=range]::-webkit-slider-thumb {
   <div id="edit-toolbar">
     <button class="btn btn-primary"   id="btn-add-group">+ Add Group</button>
     <button class="btn btn-secondary" id="btn-export">Export JSON</button>
+    <button class="btn btn-secondary" id="btn-export-md">Export Markdown</button>
     <button class="btn btn-secondary" id="btn-import">Import JSON</button>
+    <button class="btn btn-secondary" id="btn-import-md">Import Markdown</button>
     <button class="btn btn-secondary" id="btn-import-csv">Import CSV</button>
     <input type="file" id="file-import" accept=".json" style="display:none">
+    <input type="file" id="file-import-md" accept=".md" style="display:none">
     <input type="file" id="file-csv" accept=".csv" style="display:none">
     <input type="text" id="search-input" placeholder="Search labels..." class="search-input">
     <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
@@ -989,6 +992,122 @@ g('file-import').onchange = e => {
       if (!data.groups || !data.types) throw new Error('Invalid format');
       appData = data; syncSlidersToData(); renderEditor(); update();
     } catch(err) { alert('Import failed: ' + err.message); }
+  };
+  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
+  e.target.value = '';
+};
+
+// ─── Markdown export/import ───────────────────────────────────────────────
+function appDataToMarkdown() {
+  let md = '# Label Maker Database\n\n';
+  md += '## Settings\n';
+  const s = appData.settings;
+  Object.keys(s).forEach(k => { md += `- ${k}: ${s[k]}\n`; });
+
+  md += '\n## Types\n';
+  appData.types.forEach(t => {
+    md += `- **${t.id}**: ${t.label} | ${t.color}\n`;
+  });
+
+  md += '\n---\n';
+  appData.groups.forEach(group => {
+    md += `\n## ${group.title}\n\n`;
+    group.labels.forEach(label => {
+      md += `### ${label.code}\n`;
+      md += `| Field | Value |\n|-------|-------|\n`;
+      md += `| **Title** | ${label.desc} |\n`;
+      md += `| **Type** | ${label.type} |\n`;
+      md += `| **QR** | ${label.qr} |\n`;
+      if (label.details) md += `| **Details** | ${label.details.replace(/\n/g, ' ')} |\n`;
+      md += '\n';
+    });
+  });
+  return md;
+}
+
+function markdownToAppData(md) {
+  const data = { settings: {}, types: [], groups: [] };
+  const lines = md.split('\n').map(l => l.trim());
+  let currentSection = null;
+  let currentGroup = null;
+  let currentLabel = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+
+    if (line.startsWith('## ')) {
+      const title = line.slice(3);
+      if (title === 'Settings') currentSection = 'settings';
+      else if (title === 'Types') currentSection = 'types';
+      else {
+        currentSection = 'groups';
+        currentGroup = { title, labels: [] };
+        data.groups.push(currentGroup);
+      }
+      continue;
+    }
+
+    if (currentSection === 'settings' && line.includes(':')) {
+      const [k, v] = line.split(':').map(s => s.trim());
+      if (k.startsWith('-')) {
+        const key = k.slice(1).trim();
+        const val = isNaN(v) ? (v === 'true' ? true : v === 'false' ? false : v) : parseFloat(v);
+        data.settings[key] = val;
+      }
+    }
+
+    if (currentSection === 'types' && line.includes('**')) {
+      const match = line.match(/\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+)/);
+      if (match) {
+        data.types.push({ id: match[1], label: match[2], color: match[3].trim(), icon: '󰋙' });
+      }
+    }
+
+    if (currentSection === 'groups' && line.startsWith('### ')) {
+      currentLabel = { code: line.slice(4), desc: '', type: '', qr: '', details: '' };
+      currentGroup.labels.push(currentLabel);
+    }
+
+    if (currentLabel && line.includes('|') && !line.includes('---')) {
+      const parts = line.split('|').map(p => p.trim());
+      if (parts.length >= 3) {
+        const field = parts[1]?.toLowerCase();
+        const value = parts[2];
+        if (field === '**title**') currentLabel.desc = value;
+        else if (field === '**type**') currentLabel.type = value;
+        else if (field === '**qr**') currentLabel.qr = value;
+        else if (field === '**details**') currentLabel.details = value;
+      }
+    }
+  }
+
+  return data;
+}
+
+g('btn-export-md').onclick = () => {
+  const md = appDataToMarkdown();
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'labels.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+g('btn-import-md').onclick = () => g('file-import-md').click();
+g('file-import-md').onchange = e => {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = markdownToAppData(e.target.result);
+      if (!data.groups) throw new Error('Invalid Markdown format');
+      appData = data;
+      saveData();
+      syncSlidersToData();
+      renderEditor();
+      update();
+    } catch(err) { alert('Markdown import failed: ' + err.message); }
   };
   if (e.target.files[0]) reader.readAsText(e.target.files[0]);
   e.target.value = '';
