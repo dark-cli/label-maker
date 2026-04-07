@@ -122,13 +122,6 @@
           "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-ROOM.txt"
         },
         {
-          "code": "ETH-DIST-ROOF",
-          "desc": "Ethernet · To Roof Panel Main Switch",
-          "type": "eth",
-          "qr": "https://dark-cli.github.io/label-maker/?code=ETH-DIST-ROOF",
-          "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-DIST-ROOF.txt"
-        },
-        {
           "code": "ETH-DIST-HOME",
           "desc": "Ethernet · Home Switch",
           "type": "eth",
@@ -195,27 +188,6 @@
           "type": "dc",
           "qr": "https://dark-cli.github.io/label-maker/?code=DC24-OUT-POE",
           "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/DC24-OUT-POE.txt"
-        },
-        {
-          "code": "ETH-SECTOR-H1",
-          "desc": "PoE Out · Sector H1",
-          "type": "eth",
-          "qr": "https://dark-cli.github.io/label-maker/?code=ETH-SECTOR-H1",
-          "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H1.txt"
-        },
-        {
-          "code": "ETH-SECTOR-H2",
-          "desc": "PoE Out · Sector H2",
-          "type": "eth",
-          "qr": "https://dark-cli.github.io/label-maker/?code=ETH-SECTOR-H2",
-          "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H2.txt"
-        },
-        {
-          "code": "ETH-SECTOR-H3",
-          "desc": "PoE Out · Sector H3",
-          "type": "eth",
-          "qr": "https://dark-cli.github.io/label-maker/?code=ETH-SECTOR-H3",
-          "qr_old": "https://raw.githubusercontent.com/dark-cli/label-maker/master/qr_codes/ETH-SECTOR-H3.txt"
         },
         {
           "code": "POE-SW-DIST-ROOF",
