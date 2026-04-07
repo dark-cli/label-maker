@@ -1220,7 +1220,34 @@ document.addEventListener('keydown', e => {
 });
 
 // ─── Init ─────────────────────────────────────────────────────────────────
+// Auto-load markdown from data/labels.md if it exists
+async function autoLoadMarkdown() {
+  try {
+    const response = await fetch('data/labels.md');
+    if (response.ok) {
+      const md = await response.text();
+      const data = markdownToAppData(md);
+      if (data.groups && data.groups.length > 0 && data.types && data.types.length > 0) {
+        // Merge missing settings with defaults
+        Object.keys(DEFAULT_DATA.settings).forEach(k => {
+          if (data.settings[k] === undefined) {
+            data.settings[k] = DEFAULT_DATA.settings[k];
+          }
+        });
+        appData = data;
+        console.log('[AUTO-LOAD] Loaded markdown from data/labels.md');
+      }
+    }
+  } catch (e) {
+    console.log('[AUTO-LOAD] No data/labels.md found or error loading, using localStorage or defaults');
+  }
+}
+
 loadData();
+
+// Try to auto-load markdown if available
+window.addEventListener('DOMContentLoaded', autoLoadMarkdown);
+
 syncSlidersToData();
 renderEditor();
 document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
