@@ -2,7 +2,15 @@
 
 ## Settings
 - pagesize: A4
-- orientation: landscape
+- orient: landscape
+- twoFace: true
+- showBorder: true
+- showWrap: true
+- showCode: true
+- showDesc: true
+- showQR: true
+- stripeOpacity: 44
+- qrSize: 12
 - facewidth: 58
 - wrapwidth: 22
 - hdata: 17.5

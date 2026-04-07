@@ -397,6 +397,7 @@ input[type=range]::-webkit-slider-thumb {
     <button class="btn btn-primary"   id="btn-add-group">+ Add Group</button>
     <button class="btn btn-secondary" id="btn-export-md">Export Markdown</button>
     <button class="btn btn-secondary" id="btn-import-md">Import Markdown</button>
+    <button class="btn btn-secondary" id="btn-clear-all" style="background:#8b0000;color:#fff;border:none;">Clear All Data</button>
     <input type="file" id="file-import-md" accept=".md" style="display:none">
     <input type="text" id="search-input" placeholder="Search labels..." class="search-input">
     <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
@@ -567,16 +568,20 @@ function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
+      console.log('[LOAD] Loading from localStorage');
       appData = JSON.parse(raw);
       // Merge in any missing settings from defaults (for backwards compatibility)
       const defaults = DEFAULT_DATA.settings;
       Object.keys(defaults).forEach(k => {
         if (appData.settings[k] === undefined) appData.settings[k] = defaults[k];
       });
+      console.log('[LOAD] Loaded groups:', appData.groups.length);
       return;
     }
   } catch(e) {}
+  console.log('[LOAD] Using DEFAULT_DATA');
   appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  console.log('[LOAD] DEFAULT_DATA groups:', appData.groups.length);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -606,7 +611,9 @@ function renderLabels() {
   const s = appData.settings;
   let html = '';
 
+  console.log('[renderLabels] Starting with', appData.groups.length, 'groups');
   appData.groups.forEach((group, gi) => {
+    console.log(`  Group ${gi}: ${group.title} with ${group.labels?.length || 0} labels`);
     if (!group.labels?.length) return;
     html += `<div class="section-title">&#9646; ${esc(group.title)}</div><div class="label-row">`;
     group.labels.forEach((label, li) => {
@@ -970,6 +977,16 @@ function syncSlidersToData() {
 
 g('btn-add-group').onclick = () => { appData.groups.push({title:'New Group', labels:[]}); renderEditor(); };
 g('btn-add-type').onclick = () => { appData.types.push({id:'t'+Date.now(), label:'New Type', color:'#888', icon:'󰋙'}); renderEditor(); };
+g('btn-clear-all').onclick = () => {
+  if (confirm('Delete ALL data? This cannot be undone.')) {
+    localStorage.removeItem('labelmaker-v2');
+    appData = { settings: JSON.parse(JSON.stringify(DEFAULT_DATA.settings)), types: JSON.parse(JSON.stringify(DEFAULT_DATA.types)), groups: [] };
+    saveData();
+    renderEditor();
+    update();
+    alert('All data cleared!');
+  }
+};
 
 // ─── Markdown export/import ───────────────────────────────────────────────
 function appDataToMarkdown() {
@@ -1043,6 +1060,7 @@ function markdownToAppData(md) {
         qr: ''
         // Note: don't set icon, let it default to type.icon
       };
+      console.log(`[Label] ${currentLabel.code}`);
       if (currentGroup) {
         currentGroup.labels.push(currentLabel);
       }
@@ -1086,8 +1104,10 @@ function markdownToAppData(md) {
     if (currentLabel && trimmed.startsWith('|') && !trimmed.startsWith('| Field')) {
       const cells = trimmed.split('|').map(c => c.trim()).filter(c => c);
       if (cells.length >= 2) {
-        const field = cells[0].toLowerCase().replace(/\*\*/g, '');
+        const field = cells[0].toLowerCase().replace(/\*\*/g, '').trim();
         const value = cells.slice(1).join('|').trim();
+
+        console.log(`  [field] "${field}" = "${value}"`);
 
         if (field === 'title') currentLabel.desc = value;
         else if (field === 'type') currentLabel.type = value;
@@ -1104,6 +1124,14 @@ function markdownToAppData(md) {
   if (!data.groups || data.groups.length === 0) {
     throw new Error('No groups found in Markdown file');
   }
+
+  console.log('[Final parsed data]');
+  data.groups.forEach((g, gi) => {
+    console.log(`  Group ${gi}: ${g.title} (${g.labels.length} labels)`);
+    g.labels.forEach((l, li) => {
+      console.log(`    Label ${li}: code="${l.code}" desc="${l.desc}" type="${l.type}" qr="${l.qr.substring(0, 50)}..."`);
+    });
+  });
 
   return data;
 }
@@ -1129,6 +1157,12 @@ g('file-import-md').onchange = e => {
       console.log('Parsed data:', data);
       if (!data.groups || data.groups.length === 0) throw new Error('No groups found');
       if (!data.types || data.types.length === 0) throw new Error('No types found');
+      // Merge missing settings with defaults
+      Object.keys(DEFAULT_DATA.settings).forEach(k => {
+        if (data.settings[k] === undefined) {
+          data.settings[k] = DEFAULT_DATA.settings[k];
+        }
+      });
       appData = data;
       saveData();
       syncSlidersToData();
