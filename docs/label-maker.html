@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Label Maker</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css">
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --col-ac:  #e02020;
+  --col-eth: #1a6fd4;
+  --col-fbr: #b89000;
+  --col-dc:  #e07a00;
+  --col-sw:  #7b3fc4;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: #1a1a1a;
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #ccc;
+}
+
+/* ═══════════ APP SHELL ═══════════ */
+#app { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── Tab Bar ── */
+#tab-bar {
+  background: #0a0a0a;
+  padding: 0 16px;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 2px solid #1e1e1e;
+  flex-shrink: 0;
+}
+
+#app-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: 0.2em;
+  color: #fff;
+  display: flex; align-items: center;
+  padding-right: 20px;
+  border-right: 1px solid #1e1e1e;
+  margin-right: 8px;
+}
+
+.tab-btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: transparent; border: none;
+  color: #555;
+  padding: 12px 18px; cursor: pointer;
+  position: relative; transition: color 0.12s;
+}
+.tab-btn:hover { color: #999; }
+.tab-btn.active { color: #fff; }
+.tab-btn.active::after {
+  content: '';
+  position: absolute; bottom: -2px; left: 0; right: 0; height: 2px;
+  background: #c01010;
+}
+
+/* ── Panels ── */
+.panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.panel.active { display: flex; }
+
+/* ═══════════ EDIT PANEL ═══════════ */
+#panel-edit { overflow-y: auto; padding: 16px; gap: 12px; }
+
+/* Toolbar */
+#edit-toolbar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+
+.btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer;
+}
+.btn-primary   { background: #c01010; color: #fff; }
+.btn-primary:hover   { background: #a00; }
+.btn-secondary { background: #252525; color: #bbb; border: 1px solid #333; }
+.btn-secondary:hover { background: #303030; color: #fff; }
+.btn-icon {
+  background: transparent; border: none; cursor: pointer;
+  color: #444; font-size: 13px; line-height: 1;
+  padding: 3px 6px; border-radius: 3px;
+}
+.btn-icon:hover { color: #e05050; background: #2a1010; }
+
+/* Groups */
+#groups-list { display: flex; flex-direction: column; gap: 12px; }
+
+.group-card {
+  background: #202020;
+  border: 1px solid #2e2e2e;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.group-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: #282828;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.group-title-input {
+  flex: 1;
+  background: transparent; border: none; outline: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.1em;
+  color: #fff;
+}
+.group-title-input::placeholder { color: #3a3a3a; }
+
+/* Labels table */
+.labels-table { width: 100%; border-collapse: collapse; }
+
+.labels-table th {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: #444; padding: 8px 8px;
+  border-bottom: 1px solid #282828;
+  text-align: left; background: #1c1c1c;
+}
+
+.labels-table td {
+  padding: 2px 4px;
+  border-bottom: 1px solid #252525;
+  vertical-align: middle;
+}
+.labels-table tr:last-child td { border-bottom: none; }
+.labels-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+.cell-input {
+  background: transparent; border: none; outline: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; color: #bbb;
+  width: 100%; padding: 6px;
+  border-radius: 3px;
+}
+.cell-input:focus { background: #2a2a2a; color: #fff; }
+.cell-input.code {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.03em; color: #ddd;
+}
+
+.cell-select {
+  background: #242424; border: 1px solid #333;
+  color: #bbb; border-radius: 3px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  padding: 6px 6px; cursor: pointer; outline: none; width: 100%;
+}
+.cell-select:focus { border-color: #555; color: #fff; }
+
+.type-cell { display: flex; align-items: center; gap: 5px; }
+.type-swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.check-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc; cursor: pointer; }
+.check-label input[type=checkbox] { width: 16px; height: 16px; accent-color: #c01010; cursor: pointer; }
+
+.search-input {
+  background: #242424; border: 1px solid #333; color: #bbb; border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+  padding: 6px 10px; outline: none; width: 180px;
+}
+.search-input:focus { border-color: #555; color: #fff; }
+
+#lbl-pop .lbl-pop-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+#lbl-pop .lbl-pop-row:last-child { margin-bottom:0; }
+#lbl-pop .lbl-pop-row label { font-size:11px; color:#666; width:32px; flex-shrink:0; font-family:'Oswald',sans-serif; letter-spacing:0.05em; }
+#lbl-pop .lbl-pop-row input { flex:1; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:4px; color:#fff; font-size:13px; font-family:'Barlow Condensed',sans-serif; padding:6px 8px; outline:none; }
+#lbl-pop .lbl-pop-row input:focus { border-color:#555; }
+
+.drag-over { outline: 2px solid #c01010 !important; }
+tr.drag-over { outline: 2px solid #c01010; }
+
+/* ═══════════ PREVIEW PANEL ═══════════ */
+#panel-preview { overflow: hidden; }
+
+/* ── Control Panel ── */
+#ctrl-panel {
+  background: #111;
+  padding: 12px 16px 10px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+#ctrl-panel h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.15em;
+  color: #fff; margin-bottom: 12px;
+}
+.ctrl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 7px; margin-bottom: 8px;
+}
+.ctrl-group { background: #1e1e1e; border-radius: 5px; padding: 7px 9px; }
+.ctrl-group-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px; letter-spacing: 0.22em; color: #555;
+  text-transform: uppercase;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 6px; margin-bottom: 7px;
+}
+.ctrl-row { margin-bottom: 4px; }
+.ctrl-row:last-child { margin-bottom: 0; }
+.ctrl-row label { display: flex; justify-content: space-between; font-size: 13px; color: #999; margin-bottom: 4px; }
+.ctrl-row label span {
+  font-family: 'Oswald', monospace;
+  font-size: 13px; color: #fff; font-weight: 600; min-width: 40px; text-align: right;
+}
+input[type=range] {
+  width: 100%; height: 3px; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background: #383838; border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 11px; height: 11px; border-radius: 50%;
+  background: #fff; cursor: pointer; border: 2px solid #555;
+}
+#ctrl-panel select {
+  background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a;
+  border-radius: 4px; padding: 6px 7px;
+  font-family: 'Oswald', sans-serif; font-size: 13px;
+  width: 100%; cursor: pointer; outline: none; margin-top: 3px;
+}
+.ctrl-bottom { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn-print {
+  background: #c01010; color: #fff; border: none;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.1em;
+  padding: 10px 24px; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+}
+.btn-print:hover { background: #a00; }
+#page-note { font-size: 12px; color: #555; }
+
+/* ── Page Preview ── */
+#preview-area {
+  flex: 1; overflow: auto;
+  padding: 16px;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+
+#page-preview {
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  position: relative; overflow: visible;
+  transition: width 0.2s, height 0.2s;
+  /* Page break visualization via background */
+  background-image: var(--page-break-bg);
+  background-size: 100% var(--page-ph-px);
+  background-repeat: repeat-y;
+}
+
+#label-content { padding: 8mm; min-height: 100%; }
+
+/* ── Section titles ── */
+.section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 8px; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: #666;
+  margin: 4mm 0 1.5mm 0;
+  break-after: avoid;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ── Label rows ── */
+.label-row {
+  display: flex; flex-wrap: wrap; gap: 2.5mm; margin-bottom: 1mm;
+  break-inside: auto;
+}
+
+/* ── Label ── */
+.label {
+  display: flex; border: 0.5mm solid #000;
+  overflow: hidden; break-inside: avoid; position: relative;
+  margin-bottom: 1px; /* Small gap to help with break-inside calculation */
+}
+
+/* ── Face ── */
+.face, .face2 {
+  width: var(--face-w, 37mm);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 1mm 1.5mm 1mm 1mm;
+  position: relative; overflow-y: hidden; overflow-x: visible; flex-shrink: 0; background: #fff;
+}
+.face  { border-right: 0.3mm dashed #ccc; }
+.face2 { border-left:  0.3mm dashed #ccc; }
+
+.face-bg {
+  position: absolute; inset: 0;
+  background-repeat: repeat; pointer-events: none; z-index: 0;
+}
+
+.face-content { position: relative; z-index: 1; width: 100%; }
+
+.face-content .code {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700; letter-spacing: 0.03em; line-height: 1.05;
+  color: #000; white-space: normal; word-break: break-all;
+  display: block; width: 100%;
+}
+.face-content .desc {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; color: #222;
+  margin-top: 0.3mm; line-height: 1.2;
+  white-space: normal; word-break: break-word;
+  display: block; width: 100%;
+}
+
+/* ── Color bars (widths overridden by JS) ── */
+.cat-ac  .face  { border-left: 3mm solid var(--col-ac);  }
+.cat-ac  .face2 { border-right: 3mm solid var(--col-ac); }
+.cat-eth .face  { border-left: 3mm solid var(--col-eth); }
+.cat-eth .face2 { border-right: 3mm solid var(--col-eth);}
+.cat-fbr .face  { border-left: 3mm solid var(--col-fbr); }
+.cat-fbr .face2 { border-right: 3mm solid var(--col-fbr);}
+.cat-dc  .face  { border-left: 3mm solid var(--col-dc);  }
+.cat-dc  .face2 { border-right: 3mm solid var(--col-dc); }
+.cat-sw  .face  { border-left: 3mm solid var(--col-sw);  }
+.cat-sw  .face2 { border-right: 3mm solid var(--col-sw); }
+
+/* ── Wrap zone ── */
+.wrap-zone {
+  width: var(--wrap-w, 7mm);
+  position: relative; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.06), rgba(0,0,0,0.06) 1.5mm, transparent 1.5mm, transparent 3mm);
+  overflow: hidden;
+}
+.wrap-bg {
+  position: absolute; inset: 0;
+  background-repeat: repeat; pointer-events: none; z-index: 0;
+}
+.wrap-text {
+  position: relative; z-index: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 3.5pt; color: rgba(0,0,0,0.28);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex; gap: 4mm; flex-wrap: wrap; margin: 3mm 0 2mm;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 8px; font-weight: 700;
+}
+.legend-item { display: flex; align-items: center; gap: 1.5mm; }
+.legend-bar { width: 4mm; height: 9px; border-radius: 1px; }
+
+/* ═══════════ PRINT ═══════════ */
+@media print {
+  body { background: #fff !important; overflow: visible !important; }
+  #app { height: auto !important; overflow: visible !important; display: block !important; }
+  #tab-bar, #panel-edit { display: none !important; }
+  #panel-preview { display: block !important; overflow: visible !important; height: auto !important; }
+  #ctrl-panel { display: none !important; }
+  #preview-area { padding: 0 !important; display: block !important; overflow: visible !important; }
+  #page-preview {
+    box-shadow: none !important; width: 100% !important; height: auto !important;
+    overflow: visible !important; background-image: none !important;
+  }
+  #label-content { padding: 0 !important; overflow: visible !important; }
+  .section-title { color: #000; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+</style>
+</head>
+<body>
+<!-- Hidden element to force NerdFont loading -->
+<span style="font-family:'NerdFontsSymbols Nerd Font'; opacity:0; position:absolute; pointer-events:none;">󰈀󱐋󰔖󰒄</span>
+
+<div id="app">
+
+<!-- ═══════════ TAB BAR ═══════════ -->
+<div id="tab-bar">
+  <span id="app-title">&#9632; LABEL MAKER</span>
+  <button class="tab-btn active" data-tab="edit">Edit Labels</button>
+  <button class="tab-btn" data-tab="preview">Preview &amp; Print</button>
+</div>
+
+<!-- ═══════════ EDIT PANEL ═══════════ -->
+<div id="panel-edit" class="panel active">
+  <div id="edit-toolbar">
+    <button class="btn btn-primary"   id="btn-add-group">+ Add Group</button>
+    <button class="btn btn-secondary" id="btn-export-md">Export Markdown</button>
+    <button class="btn btn-secondary" id="btn-import-md">Import Markdown</button>
+    <button class="btn btn-secondary" id="btn-clear-all" style="background:#8b0000;color:#fff;border:none;">Clear All Data</button>
+    <input type="file" id="file-import-md" accept=".md" style="display:none">
+    <input type="text" id="search-input" placeholder="Search labels..." class="search-input">
+    <span style="font-size:9px;color:#333;margin-left:auto;">Auto-saved to browser</span>
+  </div>
+
+  <!-- Types Management -->
+  <div class="edit-section">
+    <div class="edit-section-header">
+      <span class="edit-section-title">GLOBAL TYPES &amp; STYLES</span>
+      <button class="btn btn-secondary" id="btn-add-type" style="font-size:9px;padding:4px 10px;">+ New Type</button>
+    </div>
+    <div id="types-list">
+      <div class="types-grid" id="types-grid"></div>
+    </div>
+  </div>
+
+  <div id="groups-list"></div>
+</div>
+
+<!-- ═══════════ PREVIEW PANEL ═══════════ -->
+<div id="panel-preview" class="panel">
+
+  <div id="ctrl-panel">
+    <h1>&#9881; LABEL SETTINGS</h1>
+    <div class="ctrl-grid">
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Label Dimensions</div>
+        <div class="ctrl-row">
+          <label>Face Width <span id="v-facewidth"></span></label>
+          <input type="range" id="sl-facewidth" min="20" max="80" value="63" step="1">
+        </div>
+        <div class="ctrl-row">
+          <label>Wrap Width <span id="v-wrapwidth"></span></label>
+          <input type="range" id="sl-wrapwidth" min="4" max="35" value="12" step="1">
+        </div>
+        <div class="ctrl-row">
+          <label>Label Height <span id="v-hdata"></span></label>
+          <input type="range" id="sl-hdata" min="6" max="35" value="15" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Color Bar <span id="v-barwidth"></span></label>
+          <input type="range" id="sl-barwidth" min="0.5" max="8" value="3.5" step="0.5">
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Text & Padding</div>
+        <div class="ctrl-row">
+          <label>Code Size <span id="v-codefont"></span></label>
+          <input type="range" id="sl-codefont" min="4" max="18" value="11.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Desc Size <span id="v-descfont"></span></label>
+          <input type="range" id="sl-descfont" min="3" max="14" value="8.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Side Padding <span id="v-padleft"></span></label>
+          <input type="range" id="sl-padleft" min="0" max="10" value="6.5" step="0.5">
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Graphics & Icons</div>
+        <div class="ctrl-row">
+          <label>Icon Size <span id="v-iconsize"></span></label>
+          <input type="range" id="sl-iconsize" min="2" max="22" value="8" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Icon Spacing <span id="v-spacing"></span></label>
+          <input type="range" id="sl-spacing" min="0" max="12" value="8.5" step="0.5">
+        </div>
+        <div class="ctrl-row">
+          <label>Icon Opacity <span id="v-opacity"></span></label>
+          <input type="range" id="sl-opacity" min="0" max="100" value="42">
+        </div>
+        <div class="ctrl-row">
+          <label>Stripe Opacity <span id="v-stripeOpacity"></span></label>
+          <input type="range" id="sl-stripeOpacity" min="0" max="100" value="44">
+        </div>
+        <div class="ctrl-row">
+          <label>QR Size <span id="v-qrSize"></span></label>
+          <input type="range" id="sl-qrSize" min="5" max="25" value="12" step="0.5">
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Page Setup</div>
+        <div class="ctrl-row">
+          <label>Paper Size</label>
+          <select id="sl-pagesize">
+            <option value="A4" selected>A4 (210×297mm)</option>
+            <option value="A3">A3 (297×420mm)</option>
+            <option value="A5">A5 (148×210mm)</option>
+            <option value="Letter">US Letter (216×279mm)</option>
+            <option value="Legal">US Legal (216×356mm)</option>
+            <option value="B4">B4 (250×353mm)</option>
+            <option value="B5">B5 (176×250mm)</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <label>Orientation</label>
+          <select id="sl-orient">
+            <option value="portrait">Portrait</option>
+            <option value="landscape" selected>Landscape</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">Visible Elements</div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-twoFace" checked> Two-Face Labels</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showBorder" checked> Color Border</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showWrap" checked> Wrap Zone</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showCode" checked> Code Text</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showDesc" checked> Description</label></div>
+        <div class="ctrl-row"><label class="check-label"><input type="checkbox" id="sl-showQR" checked> QR Codes</label></div>
+      </div>
+
+    </div>
+    <div class="ctrl-bottom">
+      <button class="btn-print" id="btn-print">&#128424; Print Labels</button>
+      <span id="page-note"></span>
+    </div>
+  </div>
+
+  <div id="preview-area">
+    <div id="page-preview">
+      <div id="label-content"></div>
+    </div>
+  </div>
+
+</div><!-- /panel-preview -->
+</div><!-- /app -->
+
+<style id="dyn-style"></style>
+
+<script>
+// ─── Default Data ────────────────────────────────────────────────────────
+const DEFAULT_DATA = {
+  settings: {
+    facewidth: 63, wrapwidth: 12, hdata: 15, barwidth: 3.5,
+    codefont: 11.5, descfont: 8.5, padleft: 6.5,
+    iconsize: 8, spacing: 8.5, opacity: 42, stripeOpacity: 44, qrSize: 12,
+    pagesize: 'A4', orient: 'landscape',
+    twoFace: true, showBorder: true, showWrap: true, showCode: true, showDesc: true, showQR: true
+  },
+  types: [
+    { id: 'ac',  label: 'AC Power', color: '#e02020', icon: '󱐋' },
+    { id: 'dc',  label: 'DC Power', color: '#e07a00', icon: '󱐋' },
+    { id: 'eth', label: 'Ethernet', color: '#1a6fd4', icon: '󰈀' },
+    { id: 'fbr', label: 'Fiber',    color: '#b89000', icon: '󰔖' },
+    { id: 'sw',  label: 'Switch',   color: '#7b3fc4', icon: '󰒄' }
+  ],
+  groups: []
+};
+
+// ─── State ────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'labelmaker-v2';
+let appData = {};
+let dragState = null; // {gi, li} for labels or {gi} for groups
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      console.log('[LOAD] Loading from localStorage');
+      appData = JSON.parse(raw);
+      // Merge in any missing settings from defaults (for backwards compatibility)
+      const defaults = DEFAULT_DATA.settings;
+      Object.keys(defaults).forEach(k => {
+        if (appData.settings[k] === undefined) appData.settings[k] = defaults[k];
+      });
+      console.log('[LOAD] Loaded groups:', appData.groups.length);
+      return;
+    }
+  } catch(e) {}
+  console.log('[LOAD] Using DEFAULT_DATA');
+  appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  console.log('[LOAD] DEFAULT_DATA groups:', appData.groups.length);
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const g = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const MM = 3.7795;
+const PAGE_SIZES = { 'A4':[210,297], 'A3':[297,420], 'A5':[148,210], 'Letter':[216,279], 'Legal':[216,356], 'B4':[250,353], 'B5':[176,250] };
+
+// Canvas-based NerdFont Tiling
+function makeIconTile(char, color, sizeMM, spacingMM, opacity) {
+  const canvas = document.createElement('canvas');
+  const size = sizeMM * 10; // High res internal scale
+  const total = (sizeMM + spacingMM) * 10;
+  canvas.width = total; canvas.height = total;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.globalAlpha = opacity / 100;
+  ctx.font = `${size}px "NerdFontsSymbols Nerd Font"`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(char, total/2, total/2);
+  return canvas.toDataURL();
+}
+
+// ─── Label Renderer ───────────────────────────────────────────────────────
+function renderLabels() {
+  const content = g('label-content');
+  const s = appData.settings;
+  let html = '';
+
+  console.log('[renderLabels] Starting with', appData.groups.length, 'groups');
+  appData.groups.forEach((group, gi) => {
+    console.log(`  Group ${gi}: ${group.title} with ${group.labels?.length || 0} labels`);
+    if (!group.labels?.length) return;
+    html += `<div class="section-title">&#9646; ${esc(group.title)}</div><div class="label-row">`;
+    group.labels.forEach((label, li) => {
+      const type = appData.types.find(t => t.id === label.type) || appData.types[0];
+      const icon = label.icon || type.icon;
+      const iconAttr = icon === 'none' ? 'data-icon="none"' : `data-type-id="${type.id}"`;
+
+      let qrImg = '';
+      if (label.qr && label.qr.trim()) {
+        const qr = new QRious({ value: label.qr, size: s.qrSize * MM, level: 'M' });
+        qrImg = `<img class="qr-img" src="${qr.toDataURL()}" data-qr-val="${esc(label.qr)}" style="width:${s.qrSize}mm;height:${s.qrSize}mm;margin-left:2mm;">`;
+      }
+
+      const face = `<div class="face-bg" ${iconAttr}></div>
+        <div class="face-content" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:1mm;">
+          <div style="flex:1;min-width:0;">
+            <div class="code">${esc(label.code)}</div>
+            <div class="desc">${esc(label.desc)}</div>
+          </div>
+          <div style="flex-shrink:0;overflow:visible;">
+            ${qrImg}
+          </div>
+        </div>`;
+
+      html += `<div class="label data cat-${type.id}" data-gi="${gi}" data-li="${li}" style="cursor:pointer;">
+        <div class="face">${face}</div>
+        <div class="wrap-zone"><div class="wrap-bg" ${iconAttr}></div><span class="wrap-text">wrap</span></div>
+        <div class="face2">${face}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  // Legend
+  html += `<div class="section-title" style="margin-top:3mm;">&#9646; Category Key</div><div class="legend">`;
+  appData.types.forEach(t => {
+    html += `<div class="legend-item"><div class="legend-bar" style="background:${t.color};"></div><span>${esc(t.label)}</span></div>`;
+  });
+  html += `</div>`;
+
+  content.innerHTML = html;
+
+  // Wire up QR hover tooltips
+  content.querySelectorAll('.qr-img').forEach(img => {
+    img.addEventListener('mouseenter', () => showQRTip(img));
+    img.addEventListener('mouseleave', hideQRTip);
+  });
+
+  // Wire up label click-to-edit popover
+  content.querySelectorAll('.label.data').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openLabelPopover(parseInt(el.dataset.gi), parseInt(el.dataset.li), el);
+    });
+  });
+}
+
+// ─── QR Tooltip ───────────────────────────────────────────────────────────
+function showQRTip(img) {
+  let tip = g('qr-tip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'qr-tip';
+    document.body.appendChild(tip);
+  }
+  const val = img.dataset.qrVal;
+  const big = new QRious({ value: val || ' ', size: 200, level: 'M' });
+  const rect = img.getBoundingClientRect();
+  tip.innerHTML = `<img src="${big.toDataURL()}" style="width:160px;height:160px;display:block;border-radius:4px;">
+    <div style="font-size:11px;color:#aaa;word-break:break-all;max-width:160px;margin-top:6px;">${esc(val)}</div>`;
+  const tipW = 180, tipH = 210;
+  const top = rect.top - tipH - 8 < 0 ? rect.bottom + 8 : rect.top - tipH - 8;
+  const left = Math.min(rect.left, window.innerWidth - tipW - 8);
+  tip.style.cssText = `position:fixed;top:${top}px;left:${left}px;background:#1a1a1a;border:1px solid #333;
+    border-radius:8px;padding:10px;z-index:9999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.6);`;
+}
+
+function hideQRTip() {
+  const tip = g('qr-tip');
+  if (tip) tip.remove();
+}
+
+// ─── Label Popover Editor ─────────────────────────────────────────────────
+function openLabelPopover(gi, li, anchorEl) {
+  const existing = g('lbl-pop');
+  if (existing) existing.remove();
+
+  const label = appData.groups[gi].labels[li];
+  const rect = anchorEl.getBoundingClientRect();
+
+  const pop = document.createElement('div');
+  pop.id = 'lbl-pop';
+  pop.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;color:#fff;">✎ EDIT LABEL</span>
+      <button id="lbl-pop-close" style="background:none;border:none;color:#666;font-size:16px;cursor:pointer;padding:0 2px;">✕</button>
+    </div>
+    <div class="lbl-pop-row"><label>Code</label><input id="lp-code" value="${esc(label.code)}" placeholder="CODE"></div>
+    <div class="lbl-pop-row"><label>Desc</label><input id="lp-desc" value="${esc(label.desc)}" placeholder="Description"></div>
+    <div class="lbl-pop-row"><label>QR</label><input id="lp-qr" value="${esc(label.qr||'')}" placeholder="QR data"></div>
+  `;
+
+  const popH = 160;
+  const top = rect.bottom + 6 + popH > window.innerHeight
+    ? rect.top - popH - 6
+    : rect.bottom + 6;
+  const left = Math.min(rect.left, window.innerWidth - 270);
+
+  pop.style.cssText = `position:fixed;top:${top}px;left:${left}px;width:260px;
+    background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:14px;
+    z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,0.6);`;
+
+  document.body.appendChild(pop);
+
+  g('lbl-pop-close').onclick = () => pop.remove();
+  g('lp-code').oninput = e => {
+    label.code = e.target.value.toUpperCase();
+    e.target.value = label.code;
+    saveData(); renderLabels(); renderEditor();
+  };
+  g('lp-desc').oninput = e => { label.desc = e.target.value; saveData(); renderLabels(); renderEditor(); };
+  g('lp-qr').oninput = e => { label.qr = e.target.value; saveData(); renderLabels(); };
+
+  setTimeout(() => {
+    document.addEventListener('click', function closer(ev) {
+      if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('click', closer); }
+    });
+  }, 10);
+}
+
+// ─── Control Logic ────────────────────────────────────────────────────────
+function update() {
+  const s = appData.settings;
+  // Sync sliders, checkboxes, and selects to data
+  document.querySelectorAll('#ctrl-panel input[type=range], #ctrl-panel input[type=checkbox], #ctrl-panel select').forEach(el => {
+    const key = el.id.replace('sl-', '');
+    if (s[key] !== undefined) {
+      if (el.type === 'checkbox') {
+        s[key] = el.checked;
+      } else if (el.type === 'range') {
+        s[key] = parseFloat(el.value);
+        const vEl = g('v-' + key);
+        if (vEl) vEl.textContent = el.value + (el.id.includes('font') ? 'pt' : (el.id.includes('opacity') ? '%' : 'mm'));
+      } else {
+        s[key] = el.value;
+      }
+    }
+  });
+  saveData();
+
+  let [pw, ph] = PAGE_SIZES[s.pagesize] || [210,297];
+  if (s.orient === 'landscape') [pw, ph] = [ph, pw];
+  g('page-note').textContent = `${s.pagesize} · ${s.orient} (${pw}×${ph}mm)`;
+
+  const phPx = ph * MM;
+  const preview = g('page-preview');
+  preview.style.width = (pw * MM) + 'px';
+  preview.style.minHeight = phPx + 'px';
+  const breakLine = 'rgba(224, 32, 32, 0.6)'; 
+  preview.style.setProperty('--page-ph-px', phPx + 'px');
+  preview.style.setProperty('--page-break-bg', `repeating-linear-gradient(to bottom, transparent, transparent ${phPx - 2}px, ${breakLine} ${phPx - 2}px, ${breakLine} ${phPx}px)`);
+
+  renderLabels();
+
+  // Generate dynamic CSS for types
+  let css = '';
+  appData.types.forEach(t => {
+    const tile = makeIconTile(t.icon, t.color, s.iconsize, s.spacing, s.opacity);
+    css += `
+      .cat-${t.id} .face { border-left: ${s.barwidth}mm solid ${t.color}; }
+      .cat-${t.id} .face2 { border-right: ${s.barwidth}mm solid ${t.color}; }
+      .cat-${t.id} .wrap-zone { border-left: ${s.barwidth}mm solid ${t.color}; border-right: ${s.barwidth}mm solid ${t.color}; }
+      [data-type-id="${t.id}"] { background-image: url("${tile}"); background-size: ${s.iconsize + s.spacing}mm ${s.iconsize + s.spacing}mm; opacity: 1; }
+    `;
+  });
+  
+  const stripeOpacity = s.stripeOpacity / 100;
+  const stripeGrad = `repeating-linear-gradient(-45deg, rgba(0,0,0,${stripeOpacity}), rgba(0,0,0,${stripeOpacity}) 1.5mm, transparent 1.5mm, transparent 3mm)`;
+
+  // Add visibility toggles CSS
+  let visibilityCss = '';
+  if (!s.showBorder) {
+    visibilityCss += `.face { border-left: none !important; } .face2 { border-right: none !important; } .wrap-zone { border-left: none !important; border-right: none !important; }`;
+  }
+  if (!s.showWrap) {
+    visibilityCss += `.wrap-zone { display: none !important; }`;
+  }
+  if (!s.twoFace) {
+    visibilityCss += `.face2 { display: none !important; }`;
+  }
+  if (!s.showCode) {
+    visibilityCss += `.face-content .code { display: none !important; }`;
+  }
+  if (!s.showDesc) {
+    visibilityCss += `.face-content .desc { display: none !important; }`;
+  }
+  if (!s.showQR) {
+    visibilityCss += `.face-content .qr-img { display: none !important; }`;
+  }
+
+  g('dyn-style').textContent = css + `
+    .label.data { height: ${s.hdata}mm; }
+    .face, .face2 { width: ${s.facewidth}mm; padding: 1mm ${s.padleft}mm; }
+    .wrap-zone { width: ${s.wrapwidth}mm; background-image: ${stripeGrad}; }
+    .face-content .code { font-size: ${s.codefont}pt; }
+    .face-content .desc { font-size: ${s.descfont}pt; }
+    [data-icon="none"] { background-image: none !important; }
+    ${visibilityCss}
+  `;
+  
+  const pageSt = g('page-st') || document.createElement('style');
+  pageSt.id = 'page-st';
+  pageSt.textContent = `@media print{@page{size:${pw}mm ${ph}mm;margin:8mm;}}`;
+  if (!pageSt.parentNode) document.head.appendChild(pageSt);
+}
+
+// ─── Editor ───────────────────────────────────────────────────────────────
+function renderEditor() {
+  // Types Grid
+  const typesGrid = g('types-grid');
+  typesGrid.innerHTML = '';
+  appData.types.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = 'type-card';
+    div.innerHTML = `
+      <div class="type-card-row">
+        <input type="text" class="cell-input" style="font-weight:700;color:#fff;" value="${esc(t.label)}" placeholder="Type Name">
+        <button class="btn-icon">✕</button>
+      </div>
+      <div class="type-card-row">
+        <input type="color" value="${t.color}">
+        <input type="text" class="cell-input" style="width:40px;text-align:center;font-family:'NerdFontsSymbols Nerd Font';" value="${esc(t.icon)}" placeholder="Icon">
+        <code style="font-size:9px;color:#444;">${esc(t.id)}</code>
+      </div>
+    `;
+    const inputs = div.querySelectorAll('input');
+    inputs[0].oninput = e => { t.label = e.target.value; update(); };
+    inputs[1].oninput = e => { t.color = e.target.value; update(); };
+    inputs[2].oninput = e => { t.icon = e.target.value; update(); };
+    div.querySelector('button').onclick = () => { appData.types.splice(i, 1); renderEditor(); update(); };
+    typesGrid.appendChild(div);
+  });
+
+  // Groups/Labels with search filtering
+  const list = g('groups-list');
+  list.innerHTML = '';
+  const searchTerm = g('search-input').value.trim().toLowerCase();
+  appData.groups.forEach((group, gi) => {
+    const card = document.createElement('div');
+    card.className = 'group-card edit-section';
+    card.innerHTML = `
+      <div class="group-header edit-section-header">
+        <span class="drag-handle" draggable="true" style="cursor:grab;font-size:12px;padding:2px 6px;color:#555;">⠿</span>
+        <input type="text" class="group-title-input" value="${esc(group.title)}" placeholder="Group Title">
+        <button class="btn btn-secondary btn-add-label">+ Label</button>
+        <button class="btn-icon btn-dup-group">⎘</button>
+        <button class="btn-icon btn-del-group">✕</button>
+      </div>
+      <table class="labels-table">
+        <thead><tr><th style="width:50px">Preview</th><th>Code</th><th>Description</th><th style="width:100px">Type</th><th style="width:100px">QR</th><th style="width:28px"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    `;
+    card.querySelector('.group-title-input').oninput = e => { group.title = e.target.value; saveData(); renderLabels(); };
+    card.querySelector('.btn-add-label').onclick = () => { group.labels.push({code:'', desc:'', type:appData.types[0]?.id||'', qr:''}); renderEditor(); update(); };
+    card.querySelector('.btn-dup-group').onclick = () => { appData.groups.push(JSON.parse(JSON.stringify(group))); renderEditor(); update(); };
+    card.querySelector('.btn-del-group').onclick = () => { appData.groups.splice(gi, 1); renderEditor(); update(); };
+
+    // Drag-to-reorder for groups
+    const dragHandle = card.querySelector('.drag-handle');
+    dragHandle.ondragstart = e => { dragState = {gi}; e.dataTransfer.effectAllowed = 'move'; };
+    card.ondragover = e => { if (dragState && dragState.gi !== undefined && dragState.li === undefined) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; card.classList.add('drag-over'); } };
+    card.ondragleave = e => { if (e.target === card) card.classList.remove('drag-over'); };
+    card.ondrop = e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (dragState && dragState.gi !== undefined && dragState.li === undefined && dragState.gi !== gi) {
+        const [dragged] = appData.groups.splice(dragState.gi, 1);
+        appData.groups.splice(gi > dragState.gi ? gi - 1 : gi, 0, dragged);
+        dragState = null;
+        saveData(); renderEditor(); update();
+      }
+    };
+
+    const tbody = card.querySelector('tbody');
+    let visibleLabels = 0;
+    group.labels.forEach((label, li) => {
+      // Check if label matches search term
+      if (searchTerm && !label.code.toLowerCase().includes(searchTerm) && !label.desc.toLowerCase().includes(searchTerm)) {
+        return; // Skip this label
+      }
+      visibleLabels++;
+      const tr = document.createElement('tr');
+      tr.draggable = true;
+      const type = appData.types.find(t => t.id === label.type) || appData.types[0];
+      tr.innerHTML = `
+        <td><div class="label-thumb cat-${type.id}" style="width:50px;height:20px;overflow:hidden;display:flex;"><div style="transform:scale(0.35);transform-origin:left center;flex:1;"><div style="display:flex;height:15mm;"><div style="border-left:3.5mm solid ${type.color};width:20mm;padding:1mm;display:flex;flex-direction:column;justify-content:center;font-size:3pt;line-height:1;"><div style="font-weight:700;">${esc(label.code)}</div><div style="color:#222;margin-top:0.3mm;">${esc(label.desc)}</div></div></div></div></div></td>
+        <td><input type="text" class="cell-input code" value="${esc(label.code)}" placeholder="CODE"></td>
+        <td><input type="text" class="cell-input" value="${esc(label.desc)}" placeholder="Description"></td>
+        <td><select class="cell-select">${appData.types.map(t => `<option value="${t.id}" ${label.type===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select></td>
+        <td><input type="text" class="cell-input" value="${esc(label.qr)}" placeholder="QR Data"></td>
+        <td><button class="btn-icon btn-dup-label">⎘</button><button class="btn-icon btn-del-label">✕</button></td>
+      `;
+      const ins = tr.querySelectorAll('input, select');
+      const updateThumb = () => {
+        const type = appData.types.find(t => t.id === label.type) || appData.types[0];
+        const thumb = tr.querySelector('.label-thumb');
+        if (thumb) {
+          thumb.className = 'label-thumb cat-' + type.id;
+          thumb.querySelector('div').innerHTML = `<div style="display:flex;height:15mm;"><div style="border-left:3.5mm solid ${type.color};width:20mm;padding:1mm;display:flex;flex-direction:column;justify-content:center;font-size:3pt;line-height:1;"><div style="font-weight:700;">${esc(label.code)}</div><div style="color:#222;margin-top:0.3mm;">${esc(label.desc)}</div></div></div>`;
+        }
+      };
+      ins[0].oninput = e => { label.code = e.target.value.toUpperCase(); e.target.value = label.code; saveData(); updateThumb(); renderLabels(); };
+      ins[1].oninput = e => { label.desc = e.target.value; saveData(); updateThumb(); renderLabels(); };
+      ins[2].onchange = e => { label.type = e.target.value; saveData(); updateThumb(); renderLabels(); update(); };
+      ins[3].oninput = e => { label.qr = e.target.value; saveData(); renderLabels(); };
+      tr.querySelector('.btn-dup-label').onclick = () => { group.labels.splice(li+1, 0, JSON.parse(JSON.stringify(label))); renderEditor(); update(); };
+      tr.querySelector('.btn-del-label').onclick = () => { group.labels.splice(li, 1); renderEditor(); update(); };
+
+      // Drag-to-reorder for labels
+      tr.ondragstart = e => { dragState = {gi, li}; e.dataTransfer.effectAllowed = 'move'; };
+      tr.ondragover = e => { if (dragState && dragState.li !== undefined) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; tr.classList.add('drag-over'); } };
+      tr.ondragleave = () => { tr.classList.remove('drag-over'); };
+      tr.ondrop = e => {
+        e.preventDefault();
+        tr.classList.remove('drag-over');
+        if (dragState && dragState.li !== undefined && (dragState.gi !== gi || dragState.li !== li)) {
+          const srcGroup = appData.groups[dragState.gi];
+          const [dragged] = srcGroup.labels.splice(dragState.li, 1);
+          if (dragState.gi === gi) {
+            group.labels.splice(li > dragState.li ? li - 1 : li, 0, dragged);
+          } else {
+            group.labels.splice(li, 0, dragged);
+          }
+          dragState = null;
+          saveData(); renderEditor(); update();
+        }
+      };
+
+      tbody.appendChild(tr);
+    });
+
+    // Hide group if no labels match search
+    if (searchTerm && visibleLabels === 0) {
+      card.style.display = 'none';
+    }
+    list.appendChild(card);
+  });
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────
+function syncSlidersToData() {
+  const s = appData.settings;
+  Object.keys(s).forEach(k => {
+    const el = g('sl-'+k);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!s[k];
+    else el.value = s[k];
+  });
+}
+
+g('btn-add-group').onclick = () => { appData.groups.push({title:'New Group', labels:[]}); renderEditor(); };
+g('btn-add-type').onclick = () => { appData.types.push({id:'t'+Date.now(), label:'New Type', color:'#888', icon:'󰋙'}); renderEditor(); };
+g('btn-clear-all').onclick = () => {
+  if (confirm('Delete ALL data? This cannot be undone.')) {
+    localStorage.removeItem('labelmaker-v2');
+    appData = { settings: JSON.parse(JSON.stringify(DEFAULT_DATA.settings)), types: JSON.parse(JSON.stringify(DEFAULT_DATA.types)), groups: [] };
+    saveData();
+    renderEditor();
+    update();
+    alert('All data cleared!');
+  }
+};
+
+// ─── Markdown export/import ───────────────────────────────────────────────
+function appDataToMarkdown() {
+  let md = '# Label Maker Database\n\n';
+  md += '## Settings\n';
+  const s = appData.settings;
+  Object.keys(s).forEach(k => { md += `- ${k}: ${s[k]}\n`; });
+
+  md += '\n## Types\n';
+  appData.types.forEach(t => {
+    md += `- **${t.id}**: ${t.label} | ${t.color} | ${t.icon || '󰋙'}\n`;
+  });
+
+  md += '\n---\n';
+  appData.groups.forEach(group => {
+    md += `\n## ${group.title}\n\n`;
+    group.labels.forEach(label => {
+      md += `### ${label.code}\n`;
+      md += `| Field | Value |\n|-------|-------|\n`;
+      md += `| **Title** | ${label.desc} |\n`;
+      md += `| **Type** | ${label.type} |\n`;
+      md += `| **QR** | ${label.qr} |\n`;
+      if (label.details) md += `| **Details** | ${label.details.replace(/\n/g, ' ')} |\n`;
+      md += '\n';
+    });
+  });
+  return md;
+}
+
+function markdownToAppData(md) {
+  const data = { settings: {}, types: [], groups: [] };
+  const lines = md.split('\n');
+  let currentSection = null;
+  let currentGroup = null;
+  let currentLabel = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Skip empty lines
+    if (!trimmed) continue;
+
+    // Section headers
+    if (trimmed.startsWith('## ')) {
+      const title = trimmed.slice(3).trim();
+      if (title === 'Settings') {
+        currentSection = 'settings';
+      } else if (title === 'Types') {
+        currentSection = 'types';
+      } else {
+        currentSection = 'groups';
+        currentGroup = { title, labels: [] };
+        data.groups.push(currentGroup);
+      }
+      currentLabel = null;
+      continue;
+    }
+
+    // Skip separator lines and table headers
+    if (trimmed.startsWith('---') || trimmed.includes('---') || trimmed === '| Field | Value |') {
+      continue;
+    }
+
+    // Label headers
+    if (trimmed.startsWith('### ')) {
+      currentLabel = {
+        code: trimmed.slice(4).trim(),
+        desc: '',
+        type: '',
+        qr: ''
+        // Note: don't set icon, let it default to type.icon
+      };
+      console.log(`[Label] ${currentLabel.code}`);
+      if (currentGroup) {
+        currentGroup.labels.push(currentLabel);
+      }
+      continue;
+    }
+
+    // Settings section
+    if (currentSection === 'settings' && trimmed.startsWith('-') && trimmed.includes(':')) {
+      const match = trimmed.match(/^-\s*(\w+):\s*(.+)$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2];
+        // Try to parse as number
+        if (!isNaN(val) && val !== '') {
+          val = parseFloat(val);
+        } else if (val === 'true') {
+          val = true;
+        } else if (val === 'false') {
+          val = false;
+        }
+        data.settings[key] = val;
+      }
+      continue;
+    }
+
+    // Types section
+    if (currentSection === 'types' && trimmed.startsWith('-') && trimmed.includes('**')) {
+      const match = trimmed.match(/^-\s*\*\*(\w+)\*\*:\s*(.+?)\s*\|\s*(.+?)\s*(?:\|\s*(.+))?$/);
+      if (match) {
+        data.types.push({
+          id: match[1],
+          label: match[2].trim(),
+          color: match[3].trim(),
+          icon: (match[4] || '󰋙').trim()
+        });
+      }
+      continue;
+    }
+
+    // Table rows in labels
+    if (currentLabel && trimmed.startsWith('|') && !trimmed.startsWith('| Field')) {
+      const cells = trimmed.split('|').map(c => c.trim()).filter(c => c);
+      if (cells.length >= 2) {
+        const field = cells[0].toLowerCase().replace(/\*\*/g, '').trim();
+        const value = cells.slice(1).join('|').trim();
+
+        console.log(`  [field] "${field}" = "${value}"`);
+
+        if (field === 'title') currentLabel.desc = value;
+        else if (field === 'type') currentLabel.type = value;
+        else if (field === 'qr') currentLabel.qr = value;
+        // Note: We skip 'details' field - it's just for reference in markdown
+      }
+    }
+  }
+
+  // Validate data
+  if (!data.types || data.types.length === 0) {
+    throw new Error('No types found in Markdown file');
+  }
+  if (!data.groups || data.groups.length === 0) {
+    throw new Error('No groups found in Markdown file');
+  }
+
+  console.log('[Final parsed data]');
+  data.groups.forEach((g, gi) => {
+    console.log(`  Group ${gi}: ${g.title} (${g.labels.length} labels)`);
+    g.labels.forEach((l, li) => {
+      console.log(`    Label ${li}: code="${l.code}" desc="${l.desc}" type="${l.type}" qr="${l.qr.substring(0, 50)}..."`);
+    });
+  });
+
+  return data;
+}
+
+g('btn-export-md').onclick = () => {
+  const md = appDataToMarkdown();
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'labels.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+g('btn-import-md').onclick = () => g('file-import-md').click();
+g('file-import-md').onchange = e => {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const md = e.target.result;
+      console.log('Markdown content length:', md.length);
+      const data = markdownToAppData(md);
+      console.log('Parsed data:', data);
+      if (!data.groups || data.groups.length === 0) throw new Error('No groups found');
+      if (!data.types || data.types.length === 0) throw new Error('No types found');
+      // Merge missing settings with defaults
+      Object.keys(DEFAULT_DATA.settings).forEach(k => {
+        if (data.settings[k] === undefined) {
+          data.settings[k] = DEFAULT_DATA.settings[k];
+        }
+      });
+      appData = data;
+      saveData();
+      syncSlidersToData();
+      renderEditor();
+      update();
+      alert('Markdown imported successfully! Groups: ' + data.groups.length + ', Types: ' + data.types.length);
+    } catch(err) {
+      console.error('Markdown import error:', err);
+      alert('Markdown import failed: ' + err.message);
+    }
+  };
+  if (e.target.files[0]) reader.readAsText(e.target.files[0]);
+  e.target.value = '';
+};
+
+// Search input
+g('search-input').oninput = renderEditor;
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  if (name === 'preview') update();
+}
+
+// ─── Keyboard Shortcuts ───────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'f') {
+      e.preventDefault();
+      g('search-input').focus();
+    } else if (e.key === 'n') {
+      e.preventDefault();
+      if (appData.groups.length === 0) appData.groups.push({title:'New Group', labels:[]});
+      appData.groups[appData.groups.length-1].labels.push({code:'', desc:'', type:appData.types[0]?.id||'', qr:''});
+      renderEditor(); update();
+    } else if (e.key === 'g') {
+      e.preventDefault();
+      appData.groups.push({title:'New Group', labels:[]});
+      renderEditor();
+    } else if (e.key === 'e') {
+      e.preventDefault();
+      switchTab('edit');
+    } else if (e.key === 'p' && !e.shiftKey) {
+      e.preventDefault();
+      switchTab('preview');
+    } else if (e.key === 'p' && e.shiftKey) {
+      e.preventDefault();
+      setTimeout(() => window.print(), 100);
+    }
+  } else if (e.key === 'Escape') {
+    const pop = g('lbl-pop');
+    if (pop) pop.remove();
+    hideQRTip();
+  }
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+loadData();
+syncSlidersToData();
+renderEditor();
+document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+document.querySelectorAll('#ctrl-panel input, #ctrl-panel select').forEach(el => el.oninput = update);
+g('btn-print').onclick = () => setTimeout(() => window.print(), 100);
+
+// Multi-stage update to ensure NerdFonts are ready for canvas drawing
+update();
+document.fonts.ready.then(() => update());
+window.onload = () => { update(); setTimeout(update, 500); };
+</script>
+</body>
+</html>

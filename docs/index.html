@@ -288,17 +288,10 @@
           app.innerHTML = `
             <div class="term-header">
               <div class="term-code">&gt; ${escapeHtml(code)}</div>
+              <div style="font-size: 12px; margin-top: 6px; opacity: 0.9;">${escapeHtml(english)}</div>
             </div>
             <div class="term-body">
               <div class="term-section">
-                <div class="term-label">English</div>
-                <div class="term-text">${escapeHtml(english)}</div>
-              </div>
-
-              <div class="term-divider"></div>
-
-              <div class="term-section">
-                <div class="term-label">العربية</div>
                 <div class="term-text arabic">${escapeHtml(arabic)}</div>
               </div>
             </div>
